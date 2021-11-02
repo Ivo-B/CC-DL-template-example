@@ -34,8 +34,11 @@ poetry shell
 # or pyenv
 source ./.venv/Scripts/activate
 ````
-Template contains example with MNIST classification.<br>
-You can simply run `python run.py`.
+Template contains example with MNIST classification.<br> 
+ 1. edit [.env.example](.env.example) and set your PROJECT_PATH, rename file to `.env`
+ 2. run jupyter notebook `notebooks/1.0-IBa-data-download-and-processed.ipynb` to download and prepare data
+ 3. Now your can simply run `python run.py`.
+
 
 ## Project Organization
 ```
