@@ -9,6 +9,19 @@
 ## Description
 We need some project explanation here!
 
+## Requirements to use this project
+- poetry
+- python 3.9
+
+Install pyenv and poetry:
+````yaml
+# PyEnv for Ubuntu
+curl https://pyenv.run | bash
+
+# Poetry for Ubuntu
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+````
+
 ## How to use
 ````yaml
 # clone project
