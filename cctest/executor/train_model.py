@@ -35,7 +35,7 @@ def train(config: DictConfig) -> Optional[float]:
     if config.trainer.get("gpus") == 0 and len(physical_devices) > 0:
         # hiding all GPUs!
         tf.config.set_visible_devices(physical_devices, 'GPU')
-    elif config.trainer.get("gpus") < 0 and config.trainer.get("gpus") < len(physical_devices):
+    elif 0 < config.trainer.get("gpus") < len(physical_devices):
         gpus_to_hide = len(physical_devices) - config.trainer.get("gpus")
         # hiding some GPUs!
         tf.config.set_visible_devices(physical_devices[gpus_to_hide:], 'GPU')
