@@ -1,0 +1,5 @@
+# csv logger built in keras
+
+csv:
+  _target_: tensorflow.keras.callbacks.CSVLogger
+  filename: "./csv/${name}.csv"

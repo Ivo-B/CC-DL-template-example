@@ -1,0 +1,16 @@
+model_checkpoint:
+  _target_: tensorflow.keras.callbacks.ModelCheckpoint
+  monitor: 'val_loss' # name of the logged metric which determines when model is improving
+  mode: 'min' # can be 'max' or 'min'
+  save_best_only: True # save best model (determined by above metric)
+  save_freq: 'epoch' # 'epoch' or integer. When using 'epoch', the callback saves the model after each epoch. When using integer, the callback saves the model at end of this many batches.
+  verbose: 0
+  filepath: 'checkpoints/epoch_{epoch:03d}-{val_loss:.2f}.tf'
+  save_format: 'tf'
+
+early_stopping:
+  _target_: tensorflow.keras.callbacks.EarlyStopping
+  monitor: 'val_loss' # name of the logged metric which determines when model is improving
+  mode: 'max' # can be 'max' or 'min'
+  patience: 100 # how many validation epochs of not improving until training stops
+  min_delta: 0 # minimum change in the monitored metric needed to qualify as an improvement

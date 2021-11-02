@@ -1,0 +1,11 @@
+# https://www.tensorflow.org/tensorboard/
+
+tensorboard:
+  _target_: tensorflow.keras.callbacks.TensorBoard
+  log_dir: "tensorboard/${name}"
+  #name: "default"
+  #version: ${name}
+  write_graph: False
+  profile_batch: 0
+  #default_hp_metric: True
+  #prefix: ""

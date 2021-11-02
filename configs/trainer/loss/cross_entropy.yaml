@@ -1,0 +1,3 @@
+_target_: tensorflow.keras.losses.CategoricalCrossentropy
+
+from_logits: True

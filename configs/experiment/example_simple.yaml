@@ -1,0 +1,29 @@
+# @package _global_
+
+# to execute this experiment run:
+# python run.py experiment=example_simple.yaml
+
+defaults:
+  - override /trainer: default.yaml
+  - override /model: mnist_model_conv.yaml
+  - override /datamodule: mnist_datamodule.yaml
+  - override /callbacks: default.yaml
+  - override /logger: null
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+trainer:
+  epochs: 5
+
+model:
+  conv1_size: 32
+  conv2_size: 64
+  conv3_size: 128
+  conv4_size: 256
+  output_size: 10
+
+datamodule:
+  batch_size: 64
