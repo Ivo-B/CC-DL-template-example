@@ -7,13 +7,12 @@ from omegaconf import DictConfig
 dotenv.load_dotenv(override=True)
 
 
-@hydra.main(config_path="configs/", config_name="config.yaml")
+@hydra.main(config_path='configs/', config_name='config.yaml')
 def main(config: DictConfig):
-
     # Imports should be nested inside @hydra.main to optimize tab completion
     # Read more here: https://github.com/facebookresearch/hydra/issues/934
-    from cctest.executor.train_model import train
-    from cctest.utils import utils
+    from cctest.executor.train_model import train  # noqa: WPS433
+    from cctest.utils import utils  # noqa: WPS433
 
     # A couple of optional utilities:
     # - disabling python warnings
@@ -23,12 +22,12 @@ def main(config: DictConfig):
     utils.extras(config)
 
     # Pretty print config using Rich library
-    if config.get("print_config"):
+    if config.get('print_config'):
         utils.print_config(config, resolve=True)
 
     # Train model
     return train(config)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -33,8 +33,11 @@ poetry install
 poetry shell
 # or pyenv
 source ./.venv/Scripts/activate
+
+#activate pre-commit
+pre-commit install
 ````
-Template contains example with MNIST classification.<br> 
+Template contains example with MNIST classification.<br>
  1. edit [.env.example](.env.example) and set your PROJECT_PATH, rename file to `.env`
  2. run jupyter notebook `notebooks/1.0-IBa-data-download-and-processed.ipynb` to download and prepare data
  3. Now your can simply run `python run.py`.
@@ -78,40 +81,40 @@ Template contains example with MNIST classification.<br>
 │   ├── data                              <- Scripts to download or generate data
 │   │   └── __init__.py
 │   ├── dataloaders                       <- Scripts to handel and load the preprocessed data
-│   │   ├── __init__.py                   
-│   │   ├── base_datamodule.py            <- TODO       
+│   │   ├── __init__.py
+│   │   ├── base_datamodule.py            <- TODO
 │   │   └── mnist_datamodule.py           <- TODO
 │   ├── evaluation                        <- Scripts to do evaluation of the results
-│   │   └── __init__.py                   
+│   │   └── __init__.py
 │   ├── executor                          <- Scripts to train, eval and test models
-│   │   ├── __init__.py                   
+│   │   ├── __init__.py
 │   │   └── train_model.py                <- TODO
 │   ├── models                            <- Scripts to define model architecture
 │   │   ├── modules                       <- TODO
-│   │   │   ├── __init__.py               
+│   │   │   ├── __init__.py
 │   │   │   ├── simple_conv_net.py        <- TODO
 │   │   │   └── simple_dense_net.py       <- TODO
-│   │   ├── __init__.py                   
+│   │   ├── __init__.py
 │   │   └── base_trainer_module.py        <- TODO
 │   ├── utils                             <- Utility scripts
-│   │   ├── __init__.py                   
+│   │   ├── __init__.py
 │   │   ├── my_callback.py                <- TODO
 │   │   └── utils.py                      <- TODO
 │   │
-│   ├── visualization                     <- Scripts to create exploratory and results oriented 
+│   ├── visualization                     <- Scripts to create exploratory and results oriented
 │   │   └── __init__.py                    visualizations
 │   │
 │   └── __init__.py                       <- Makes cctest a Python module
 │
-├── .editorconfig         <- file with format specification. You need to install 
+├── .editorconfig         <- file with format specification. You need to install
 │                             the required plugin for your IDE in order to enable it.
 ├── .gitignore         <- file that specifies what should we commit into
 │                             the repository and we should not.
 ├── LICENSE
 ├── poetry.toml         <- poetry config file to install enviroment locally
-├── poetry.lock         <- lock file for dependencies. It is used to install exactly 
+├── poetry.lock         <- lock file for dependencies. It is used to install exactly
 │                         the same versions of dependencies on each build
-├── pyproject.toml      <- The project's dependencies for reproducing the 
+├── pyproject.toml      <- The project's dependencies for reproducing the
 │                         analysis environment
 ├── README.md           <- The top-level README for developers using this project.
 └── setup.cfg           <- configuration file, that is used by all tools in this project```

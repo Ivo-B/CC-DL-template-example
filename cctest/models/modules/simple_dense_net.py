@@ -38,11 +38,15 @@ class SimpleDenseNet(keras.Model):
             inputs ([dict]): the result from `tf.keras.Input`
         """
         if isinstance(inputs, dict):
-            self.inputs_layer = {n: keras.layers.InputLayer(input_tensor=i, name=n)
-                                 for n, i in inputs.items()}
+            self.inputs_layer = {
+                n: keras.layers.InputLayer(input_tensor=i, name=n)
+                for n, i in inputs.items()
+            }
         elif isinstance(inputs, (list, tuple)):
-            self.inputs_layer = [keras.layers.InputLayer(input_tensor=i, name=i.name)
-                                 for i in inputs]
+            self.inputs_layer = [
+                keras.layers.InputLayer(input_tensor=i, name=i.name)
+                for i in inputs
+            ]
         elif tf.is_tensor(inputs):
             self.inputs_layer = keras.layers.InputLayer(input_tensor=inputs, name=inputs.name)
 
@@ -69,7 +73,9 @@ class SimpleDenseNet(keras.Model):
         return self.dense4(x)
 
     def get_config(self):
-        return {"lin1_size": self.lin1_size,
-                "lin2_size": self.lin2_size,
-                "lin3_size": self.lin3_size,
-                "output_size": self.output_size}
+        return {
+            "lin1_size": self.lin1_size,
+            "lin2_size": self.lin2_size,
+            "lin3_size": self.lin3_size,
+            "output_size": self.output_size,
+        }

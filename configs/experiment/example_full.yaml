@@ -84,9 +84,9 @@ callbacks:
 logger:
   tensorboard:
     _target_: tensorflow.keras.callbacks.TensorBoard
-    log_dir: "tensorboard/${name}"
+    log_dir: 'tensorboard/${name}'
     write_graph: False
     profile_batch: 0
   csv:
     _target_: tensorflow.keras.callbacks.CSVLogger
-    filename: "./csv/${name}.csv"
+    filename: './csv/${name}.csv'
