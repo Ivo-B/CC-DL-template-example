@@ -6,4 +6,3 @@ conv2_size: 32
 conv3_size: 32
 conv4_size: 64
 output_size: 10
-

@@ -1,11 +1,10 @@
+import os
 from typing import List, Optional
 
-import os
 import hydra
+import tensorflow as tf
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
-
-import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
 
 from ..datamodule.mnist_datamodule import MNISTDataset
@@ -34,7 +33,7 @@ def train(config: DictConfig) -> Optional[float]:
         raise ValueError(f'Did not find enough GPUs. Reduce the number of GPUs to use!')
     if config.trainer.get("gpus") == 0 and len(physical_devices) > 0:
         # hiding all GPUs!
-        tf.config.set_visible_devices(physical_devices, 'GPU')
+        tf.config.set_visible_devices([], 'GPU')
     elif 0 < config.trainer.get("gpus") < len(physical_devices):
         gpus_to_hide = len(physical_devices) - config.trainer.get("gpus")
         # hiding some GPUs!
@@ -78,7 +77,7 @@ def train(config: DictConfig) -> Optional[float]:
     #########################
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
     trainer: TrainingModule = hydra.utils.instantiate(
-       config.trainer, callbacks=callbacks, logger=logger, model=config.model, _convert_="partial", _recursive_=False
+        config.trainer, callbacks=callbacks, logger=logger, model=config.model, _convert_="partial", _recursive_=False,
     )
     trainer.build()
 
@@ -95,9 +94,11 @@ def train(config: DictConfig) -> Optional[float]:
     # Train the model
     log.info("Starting training!")
 
-    history = trainer.fit(training_dataset,
-                          steps_per_epoch=datamodule.steps_per_epoch,
-                          validation_dataset=validation_dataset)
+    history = trainer.fit(
+        training_dataset,
+        steps_per_epoch=datamodule.steps_per_epoch,
+        validation_dataset=validation_dataset,
+    )
     # print(history)
     # Evaluate model on test set, using the best model achieved during training
     if config.get("test_after_training") and not config.trainer.get("fast_dev_run"):
@@ -130,3 +131,4 @@ def train(config: DictConfig) -> Optional[float]:
         else:
             raise ValueError
 
+    return 0

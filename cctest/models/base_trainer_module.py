@@ -1,23 +1,27 @@
-import tensorflow as tf
-import hydra
 import platform
+
+import hydra
+import tensorflow as tf
+
 from ..utils import utils
 
 log = utils.get_logger(__name__)
 
 
 class TrainingModule:
-    def __init__(self,
-                 gpus: int,
-                 workers: int,
-                 epochs: int,
-                 optimizer: dict,
-                 lr_scheduler: dict,
-                 loss: dict,
-                 metric: dict,
-                 model: dict,
-                 callbacks: list[tf.keras.callbacks.Callback],
-                 logger: list[tf.keras.callbacks.Callback]):
+    def __init__(
+        self,
+        gpus: int,
+        workers: int,
+        epochs: int,
+        optimizer: dict,
+        lr_scheduler: dict,
+        loss: dict,
+        metric: dict,
+        model: dict,
+        callbacks: list[tf.keras.callbacks.Callback],
+        logger: list[tf.keras.callbacks.Callback],
+    ):
         self.gpus = gpus
         self.workers = workers
         self.epochs = epochs
@@ -38,7 +42,6 @@ class TrainingModule:
         else:
             strategy = tf.distribute.MirroredStrategy()
         log.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
-        assert self.gpus == strategy.num_replicas_in_sync
 
         with strategy.scope():
             log.info(f"Instantiating model <{self.model['_target_']}>")
@@ -61,19 +64,21 @@ class TrainingModule:
             self.model.compile(
                 optimizer=self.optimizer_fn,
                 loss=self.loss_fn,
-                metrics=self.metric_fn
+                metrics=self.metric_fn,
             )
 
     def fit(self, training_dataset, steps_per_epoch, validation_dataset=None):
-        return self.model.fit(training_dataset,
-                              epochs=self.epochs,
-                              steps_per_epoch=steps_per_epoch,
-                              validation_data=validation_dataset,
-                              callbacks=self.callbacks + [self.lr_scheduler],
-                              workers=self.workers,
-                              max_queue_size=self.workers * 2,
-                              use_multiprocessing=True,
-                              shuffle=False)
+        return self.model.fit(
+            training_dataset,
+            epochs=self.epochs,
+            steps_per_epoch=steps_per_epoch,
+            validation_data=validation_dataset,
+            callbacks=self.callbacks + [self.lr_scheduler],
+            workers=self.workers,
+            max_queue_size=self.workers * 2,
+            use_multiprocessing=True,
+            shuffle=False,
+        )
 
     def evaluate(self, test_dataset):
         return self.model.evaluate(test_dataset, use_multiprocessing=True)
