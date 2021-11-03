@@ -1,13 +1,13 @@
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.callbacks import Callback
-
-from skimage.color import label2rgb
-import seaborn as sns
-import matplotlib.pyplot as plt
-import seaborn_image as isns
 import io
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import seaborn_image as isns
+import tensorflow as tf
+from skimage.color import label2rgb
+from tensorflow.keras.callbacks import Callback
 
 
 class ImageLogger(Callback):
@@ -29,7 +29,7 @@ class ImageLogger(Callback):
 
     def plot_to_image(self, figure):
         """Converts the matplotlib plot specified by 'figure' to a PNG image and
-		returns it. The supplied figure is closed and inaccessible after this call."""
+                returns it. The supplied figure is closed and inaccessible after this call."""
         # Save the plot to a PNG in memory.
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
@@ -91,4 +91,3 @@ class LearningRateLogger(Callback):
         if logs is None or "learning_rate" in logs:
             return
         logs["learning_rate"] = self.model.optimizer.lr
-

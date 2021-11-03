@@ -1,14 +1,15 @@
 import logging
-import warnings
-from typing import List, Sequence
 import os
 import random
-import numpy as np
-import tensorflow as tf
+import warnings
+from typing import List, Sequence
 
+import numpy as np
 import rich.syntax
 import rich.tree
+import tensorflow as tf
 from omegaconf import DictConfig, OmegaConf
+
 
 def set_all_seeds(seed_value: str = "0xCAFFEE") -> None:
     # Set a seed value
@@ -57,7 +58,7 @@ def extras(config: DictConfig) -> None:
     if config.get("experiment_mode") and not config.get("name"):
         log.info(
             "Running in experiment mode without the experiment name specified! "
-            "Use `python run.py mode=exp name=experiment_name`"
+            "Use `python run.py mode=exp name=experiment_name`",
         )
         log.info("Exiting...")
         exit()
@@ -145,7 +146,10 @@ def log_hyperparameters(
     # save number of model parameters
     hparams["model/params_total"] = trainer.model.count_params()
     hparams["model/params_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.trainable_weights])
-    hparams["model/params_not_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights])
+    hparams["model/params_not_trainable"] = np.sum([
+        np.prod(v.get_shape())
+        for v in trainer.model.non_trainable_weights
+    ])
 
     # send hparams to all loggers
     trainer.logger.log_hyperparams(hparams)
@@ -167,4 +171,3 @@ def finish(
 
     # without this sweeps with wandb logger might crash!
     pass
-
