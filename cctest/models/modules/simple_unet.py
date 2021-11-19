@@ -13,6 +13,10 @@ class SimpleUNet(keras.Model):
     ):
         super(SimpleUNet, self).__init__(name="SimpleUNet")
         self.input_shape_ = tuple(input_shape)
+        self.start_filters = start_filters
+        self.kernel_size = tuple(kernel_size)
+        self.num_down_blocks = num_down_blocks
+        self.num_classes = num_classes
 
         self.down_layers = []
         for idx in range(num_down_blocks):

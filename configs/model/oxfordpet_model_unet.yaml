@@ -3,5 +3,5 @@ _target_: cctest.models.modules.simple_unet.SimpleUNet
 input_shape: [128, 128, 3]
 start_filters: 16
 kernel_size: [3, 3]
-num_layers: 4
+num_down_blocks: 4
 num_classes: 2

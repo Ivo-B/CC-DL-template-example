@@ -64,11 +64,13 @@ def train(config: DictConfig) -> Optional[float]:
                 log.info(f"Instantiating callback <{cb_conf._target_}>")
                 callbacks.append(hydra.utils.instantiate(cb_conf))
 
-    # Init lightning loggers
+    # Init loggers
     logger: List[Callback] = []
     if "logger" in config:
         for _, lg_conf in config.logger.items():
             if "_target_" in lg_conf:
+                if "wandb" in lg_conf._target_:
+                    utils.using_wandb = True and utils.using_wandb
                 log.info(f"Instantiating logger <{lg_conf._target_}>")
                 logger.append(hydra.utils.instantiate(lg_conf))
 
@@ -81,15 +83,14 @@ def train(config: DictConfig) -> Optional[float]:
     )
     trainer.build()
 
-    # Send some parameters from config to all loggers
-    # log.info("Logging hyperparameters!")
-    # utils.log_hyperparameters(
-    #    config=config,
-    #    datamodule=datamodule,
-    #    trainer=trainer,
-    #    callbacks=callbacks,
-    #    logger=logger,
-    # )
+    # Send some parameters from config to wandb logger
+    if utils.using_wandb:
+        log.info("Logging hyperparameters to wandb!")
+        utils.log_hyperparameters(
+            config=config,
+            datamodule=datamodule,
+            trainer=trainer,
+        )
 
     # Train the model
     log.info("Starting training!")
@@ -98,23 +99,18 @@ def train(config: DictConfig) -> Optional[float]:
         training_dataset, steps_per_epoch=datamodule.steps_per_epoch, validation_dataset=validation_dataset
     )
 
-    history.history
-    # print(history)
+    if config.get("print_history"):
+        utils.print_history(history.history)
 
     # Make sure everything closed properly
-    # log.info("Finalizing!")
-    # utils.finish(
-    #     config=config,
-    #     model=model,
-    #     datamodule=datamodule,
-    #     trainer=trainer,
-    #     callbacks=callbacks,
-    #     logger=logger,
-    # )
-
-    # Print path to best checkpoint
-    # if not config.trainer.get("fast_dev_run"):
-    #     log.info(f"Best model ckpt: {trainer.model.best_model_path}")
+    log.info("Finalizing!")
+    utils.finish(
+        config=config,
+        datamodule=datamodule,
+        trainer=trainer,
+        callbacks=callbacks,
+        logger=logger,
+    )
 
     # Return metric score for hyperparameter optimization
     optimized_metric = config.get("optimized_metric")
