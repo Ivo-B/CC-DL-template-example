@@ -21,26 +21,25 @@ authors = ["Ivo Matteo Baltruschat <ivo.baltruschat@desy.de>"]
 
 [tool.poetry.dependencies]
 # python = "^{{ cookiecutter.python_version_number }}"
-python = "^3.9"
+python = "~3.9"
 # {% if cookiecutter.ml_framework == "Tensorflow" %}
 # tensorflow = "^{{ cookiecutter.ml_framework_version }}"
 # {% elif cookiecutter.ml_framework == "PyTorch" %}
 # torch = "^{{ cookiecutter.ml_framework_version }}"
 # {% endif %}
-tensorflow = "^2.4"
-
+tensorflow = "~2.7"
+tensorflow-datasets = "^4.4.0"
 
 #{% if cookiecutter.add_example_project == "yes" %}
 jsonschema = "^3.2.0"
-tensorflow-datasets = "^4.4.0"
+pydot = "^1.4.2"
 matplotlib = "^3.4.3"
 python-dotenv = "^0.19.1"
-hydra-core = "^1.1.1"
 albumentations = "^1.1.0"
+hydra-core = "^1.1.1"
 hydra-colorlog = "^1.1.0"
-rich = "^10.12.0"
-pydot = "^1.4.2"
 hydra-optuna-sweeper = "^1.1.1"
+rich = "^10.12.0"
 #{% endif %}
 
 [tool.poetry.dev-dependencies]
