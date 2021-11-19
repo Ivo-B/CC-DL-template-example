@@ -79,7 +79,12 @@ def train(config: DictConfig) -> Optional[float]:
     #########################
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
     trainer: TrainingModule = hydra.utils.instantiate(
-        config.trainer, callbacks=callbacks, logger=logger, model=config.model, _convert_="partial", _recursive_=False,
+        config.trainer,
+        callbacks=callbacks,
+        logger=logger,
+        model=config.model,
+        _convert_="partial",
+        _recursive_=False,
     )
     trainer.build()
 
@@ -96,7 +101,9 @@ def train(config: DictConfig) -> Optional[float]:
     log.info("Starting training!")
 
     history = trainer.fit(
-        training_dataset, steps_per_epoch=datamodule.steps_per_epoch, validation_dataset=validation_dataset
+        training_dataset,
+        steps_per_epoch=datamodule.steps_per_epoch,
+        validation_dataset=validation_dataset,
     )
 
     if config.get("print_history"):
@@ -121,4 +128,3 @@ def train(config: DictConfig) -> Optional[float]:
             return min(history.history[optimized_metric])
         else:
             raise ValueError
-

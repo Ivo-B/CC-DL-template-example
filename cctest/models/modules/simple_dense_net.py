@@ -57,7 +57,8 @@ class SimpleDenseNet(keras.Model):
 
     def get_config(self):
         return {
-            "input_shape_": self.input_shape_,"lin1_size": self.lin1_size,
+            "input_shape_": self.input_shape_,
+            "lin1_size": self.lin1_size,
             "lin2_size": self.lin2_size,
             "lin3_size": self.lin3_size,
             "output_size": self.output_size,
