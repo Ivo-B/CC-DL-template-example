@@ -1,0 +1,6 @@
+_target_: cctest.utils.my_metrics.MeanSegMetric
+
+jaccard: true
+include_background: true
+from_logits: ${trainer.loss.from_logits}
+num_classes: ${model.num_classes}

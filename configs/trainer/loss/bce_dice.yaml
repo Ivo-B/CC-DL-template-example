@@ -1,0 +1,9 @@
+_target_: cctest.utils.my_losses.BCESegLoss
+
+from_logits: false
+include_background: true
+squared_pred: false
+jaccard: false
+log_dice: false
+smooth_nr: 1.0
+smooth_dr: 1.0

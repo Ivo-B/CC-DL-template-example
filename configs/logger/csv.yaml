@@ -2,4 +2,4 @@
 
 csv:
   _target_: tensorflow.keras.callbacks.CSVLogger
-  filename: "./csv/${name}.csv"
+  filename: "csv/${name}.csv"
