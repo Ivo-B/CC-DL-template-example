@@ -9,6 +9,10 @@ import tensorflow as tf
 from skimage.color import label2rgb
 from tensorflow.keras.callbacks import Callback
 
+from cctest.utils import utils
+
+log = utils.get_logger(__name__)
+
 
 class ImageLogger(Callback):
     def __init__(self, file_writer_image, batch_data, epoch_freq=1, num_images=16, testing=False):
@@ -29,10 +33,10 @@ class ImageLogger(Callback):
 
     def plot_to_image(self, figure):
         """Converts the matplotlib plot specified by 'figure' to a PNG image and
-                returns it. The supplied figure is closed and inaccessible after this call."""
+        returns it. The supplied figure is closed and inaccessible after this call."""
         # Save the plot to a PNG in memory.
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format="png")
         # Closing the figure prevents it from being displayed directly inside
         # the notebook.
         plt.close(figure)
@@ -50,9 +54,9 @@ class ImageLogger(Callback):
         # test_mask = label2rgb(test_mask, bg_label=0, colors=colors)
 
         f, axs = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
-        isns.imgplot(test_image, ax=axs[0], cmap='gray', cbar=False, interpolation='nearest', origin='upper')
-        isns.imgplot(test_mask, ax=axs[1], cmap='viridis', cbar=False, interpolation='nearest', origin='upper')
-        isns.imgplot(test_pred, ax=axs[2], cmap='viridis', cbar=False, interpolation='nearest', origin='upper')
+        isns.imgplot(test_image, ax=axs[0], cmap="gray", cbar=False, interpolation="nearest", origin="upper")
+        isns.imgplot(test_mask, ax=axs[1], cmap="viridis", cbar=False, interpolation="nearest", origin="upper")
+        isns.imgplot(test_pred, ax=axs[2], cmap="viridis", cbar=False, interpolation="nearest", origin="upper")
         # isns.imgplot(test_pred_over, ax=axs[3], cbar=False, interpolation='nearest')
         plt.tight_layout()
         if self.testing:

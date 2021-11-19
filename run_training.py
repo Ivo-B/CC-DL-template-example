@@ -1,3 +1,5 @@
+import os
+
 import dotenv
 import hydra
 from omegaconf import DictConfig
@@ -7,7 +9,7 @@ from omegaconf import DictConfig
 dotenv.load_dotenv(override=True)
 
 
-@hydra.main(config_path='configs/', config_name='config.yaml')
+@hydra.main(config_path="configs/", config_name="config.yaml")
 def main(config: DictConfig):
     # Imports should be nested inside @hydra.main to optimize tab completion
     # Read more here: https://github.com/facebookresearch/hydra/issues/934
@@ -22,12 +24,17 @@ def main(config: DictConfig):
     utils.extras(config)
 
     # Pretty print config using Rich library
-    if config.get('print_config'):
+    if config.get("print_config"):
         utils.print_config(config, resolve=True)
 
     # Train model
     return train(config)
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    # AFAIK: Best method to get ride of exception at the
+    # Read more here:
+    try:
+        main()
+    except OSError:
+        pass

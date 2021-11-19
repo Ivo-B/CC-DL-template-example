@@ -1,0 +1,7 @@
+_target_: cctest.datamodule.oxford_iiit_pet_datamodule.OxfordPetDataset
+
+data_dir: ${data_dir} # data_dir is specified in config.yaml
+train_list: "OxfordPet_training_data.txt"
+val_list: "OxfordPet_validation_data.txt"
+test_list: "OxfordPet_test_data.txt"
+batch_size: 64

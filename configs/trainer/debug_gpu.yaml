@@ -2,6 +2,6 @@
 defaults:
   - default.yaml
 
-gpus: 0
+gpus: -1
 
 epochs: 1

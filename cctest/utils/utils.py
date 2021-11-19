@@ -6,16 +6,24 @@ from typing import List, Sequence
 
 import numpy as np
 import rich.syntax
+import rich.table
 import rich.tree
 import tensorflow as tf
 from omegaconf import DictConfig, OmegaConf
+
+try:
+    import wandb
+
+    using_wandb = True
+except ImportError:
+    using_wandb = False
 
 
 def set_all_seeds(seed_value: str = "0xCAFFEE") -> None:
     # Set a seed value
     seed_value = int(seed_value, 0)
     # 1. Set `PYTHONHASHSEED` environment variable at a fixed value
-    os.environ['PYTHONHASHSEED'] = str(seed_value)
+    os.environ["PYTHONHASHSEED"] = str(seed_value)
     # 2. Set `python` built-in pseudo-random generator at a fixed value
     random.seed(seed_value)
     # 3. Set `numpy` pseudo-random generator at a fixed value
@@ -58,7 +66,7 @@ def extras(config: DictConfig) -> None:
     if config.get("experiment_mode") and not config.get("name"):
         log.info(
             "Running in experiment mode without the experiment name specified! "
-            "Use `python run.py mode=exp name=experiment_name`",
+            "Use `python run.py mode=exp name=experiment_name`"
         )
         log.info("Exiting...")
         exit()
@@ -83,7 +91,6 @@ def print_config(
         "datamodule",
         "callbacks",
         "logger",
-        "test_after_training",
         "seed",
         "name",
     ),
@@ -99,6 +106,11 @@ def print_config(
 
     style = "dim"
     tree = rich.tree.Tree("CONFIG", style=style, guide_style=style)
+
+    # add log dir
+    branch = tree.add("log_dir", style=style, guide_style=style)
+    branch_content = os.getcwd()
+    branch.add(rich.syntax.Syntax(branch_content, "yaml"))
 
     for field in fields:
         branch = tree.add(field, style=style, guide_style=style)
@@ -116,22 +128,59 @@ def print_config(
         rich.print(tree, file=fp)
 
 
+def print_history(
+    history: dict,
+) -> None:
+    """Prints content of history using Rich library and its table structure.
+    Args:
+        history (dict): Results from keras fit.
+    """
+
+    style = "dim"
+    table = rich.table.Table(title="HISTORY", show_header=True, header_style="bold magenta")
+    all_rows = []
+    table.add_column("Epoch", style=style, justify="right")
+    all_rows.append(["Epoch"])
+    for idx, field in enumerate(history.keys()):
+        idx += 1
+        table.add_column(field, style=style, justify="right")
+        all_rows.append([field])
+        for epoch, entry in enumerate(history[field]):
+            all_rows[idx].append(entry)
+            if idx == 1:
+                all_rows[0].append(epoch)
+
+    # skipping header row
+    for num_row in range(1, len(all_rows[0])):
+        row = ()
+        for num_col in range(len(all_rows)):
+            if all_rows[num_col][0] == "lr":
+                row += ("{:.4e}".format(all_rows[num_col][num_row]),)
+            elif all_rows[num_col][0] == "Epoch":
+                row += ("{:d}".format(all_rows[num_col][num_row]),)
+            else:
+                row += ("{:.4f}".format(all_rows[num_col][num_row]),)
+        table.add_row(*row)
+
+    rich.print(table)
+
+    with open("history_table.txt", "w") as fp:
+        rich.print(table, file=fp)
+
+
 def empty(*args, **kwargs):
     pass
 
 
 def log_hyperparameters(
     config: DictConfig,
-    datamodule: 'TfDataloader',
-    trainer: 'TrainingModule',
-    callbacks: List[tf.keras.callbacks.Callback],
-    logger: List[tf.keras.callbacks.Callback],
+    datamodule: "TfDataloader",
+    trainer: "TrainingModule",
 ) -> None:
-    """This method controls which parameters from Hydra config are saved by Lightning loggers.
-    Additionaly saves:
+    """This method controls which parameters from Hydra config are saved by loggers.
+    Additional saves:
         - number of trainable model parameters
     """
-
     hparams = {}
 
     # choose which parts of hydra config will be saved to loggers
@@ -146,28 +195,22 @@ def log_hyperparameters(
     # save number of model parameters
     hparams["model/params_total"] = trainer.model.count_params()
     hparams["model/params_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.trainable_weights])
-    hparams["model/params_not_trainable"] = np.sum([
-        np.prod(v.get_shape())
-        for v in trainer.model.non_trainable_weights
-    ])
+    hparams["model/params_not_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights])
 
-    # send hparams to all loggers
-    trainer.logger.log_hyperparams(hparams)
-
-    # disable logging any more hyperparameters for all loggers
-    # this is just a trick to prevent trainer from logging hparams of model,
-    # since we already did that above
-    trainer.logger.log_hyperparams = empty
+    # send hparams to wandb logger
+    if using_wandb:
+        wandb.config(hparams)
 
 
 def finish(
     config: DictConfig,
-    datamodule: 'TfDataloader',
-    trainer: 'TrainingModule',
+    datamodule: "TfDataloader",
+    trainer: "TrainingModule",
     callbacks: List[tf.keras.callbacks.Callback],
     logger: List[tf.keras.callbacks.Callback],
 ) -> None:
     """Makes sure everything closed properly."""
 
     # without this sweeps with wandb logger might crash!
-    pass
+    if using_wandb:
+        wandb.finish()
