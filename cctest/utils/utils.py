@@ -1,20 +1,21 @@
 import logging
-import warnings
-from typing import List, Sequence
 import os
 import random
-import numpy as np
-import tensorflow as tf
+import warnings
+from typing import List, Sequence
 
+import numpy as np
 import rich.syntax
 import rich.tree
+import tensorflow as tf
 from omegaconf import DictConfig, OmegaConf
+
 
 def set_all_seeds(seed_value: str = "0xCAFFEE") -> None:
     # Set a seed value
     seed_value = int(seed_value, 0)
     # 1. Set `PYTHONHASHSEED` environment variable at a fixed value
-    os.environ['PYTHONHASHSEED'] = str(seed_value)
+    os.environ["PYTHONHASHSEED"] = str(seed_value)
     # 2. Set `python` built-in pseudo-random generator at a fixed value
     random.seed(seed_value)
     # 3. Set `numpy` pseudo-random generator at a fixed value
@@ -121,8 +122,8 @@ def empty(*args, **kwargs):
 
 def log_hyperparameters(
     config: DictConfig,
-    datamodule: 'TfDataloader',
-    trainer: 'TrainingModule',
+    datamodule: "TfDataloader",
+    trainer: "TrainingModule",
     callbacks: List[tf.keras.callbacks.Callback],
     logger: List[tf.keras.callbacks.Callback],
 ) -> None:
@@ -158,13 +159,17 @@ def log_hyperparameters(
 
 def finish(
     config: DictConfig,
-    datamodule: 'TfDataloader',
-    trainer: 'TrainingModule',
+    datamodule: "TfDataloader",
+    trainer: "TrainingModule",
     callbacks: List[tf.keras.callbacks.Callback],
     logger: List[tf.keras.callbacks.Callback],
 ) -> None:
     """Makes sure everything closed properly."""
 
     # without this sweeps with wandb logger might crash!
-    pass
+    try:
+        import wandb
 
+        wandb.finish()
+    except ImportError:
+        pass

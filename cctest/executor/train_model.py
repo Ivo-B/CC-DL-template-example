@@ -1,11 +1,10 @@
+import os
 from typing import List, Optional
 
-import os
 import hydra
+import tensorflow as tf
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
-
-import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
 
 from ..datamodule.mnist_datamodule import MNISTDataset
@@ -29,21 +28,21 @@ def train(config: DictConfig) -> Optional[float]:
         utils.set_all_seeds(config.seed)
 
     # check devices
-    physical_devices = tf.config.list_physical_devices('GPU')
+    physical_devices = tf.config.list_physical_devices("GPU")
     if config.trainer.get("gpus") >= 1 and config.trainer.get("gpus") > len(physical_devices):
-        raise ValueError(f'Did not find enough GPUs. Reduce the number of GPUs to use!')
+        raise ValueError(f"Did not find enough GPUs. Reduce the number of GPUs to use!")
     if config.trainer.get("gpus") == 0 and len(physical_devices) > 0:
         # hiding all GPUs!
-        tf.config.set_visible_devices(physical_devices, 'GPU')
+        tf.config.set_visible_devices([], "GPU")
     elif 0 < config.trainer.get("gpus") < len(physical_devices):
         gpus_to_hide = len(physical_devices) - config.trainer.get("gpus")
         # hiding some GPUs!
-        tf.config.set_visible_devices(physical_devices[gpus_to_hide:], 'GPU')
+        tf.config.set_visible_devices(physical_devices[gpus_to_hide:], "GPU")
     else:
         # use all GPUs
         config.trainer.gpus = len(physical_devices)
     if config.trainer.get("gpus") > 0:
-        visible_devices = tf.config.get_visible_devices('GPU')
+        visible_devices = tf.config.get_visible_devices("GPU")
         for gpu in visible_devices:
             tf.config.experimental.set_memory_growth(gpu, True)
 
@@ -52,8 +51,8 @@ def train(config: DictConfig) -> Optional[float]:
     #############################
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
     datamodule: MNISTDataset = hydra.utils.instantiate(config.datamodule, num_gpus=config.trainer.get("gpus"))
-    training_dataset = datamodule.get_tf_dataset('training')
-    validation_dataset = datamodule.get_tf_dataset('validation')
+    training_dataset = datamodule.get_tf_dataset("training")
+    validation_dataset = datamodule.get_tf_dataset("validation")
 
     #########################
     # Callbacks for model training
@@ -78,7 +77,7 @@ def train(config: DictConfig) -> Optional[float]:
     #########################
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
     trainer: TrainingModule = hydra.utils.instantiate(
-       config.trainer, callbacks=callbacks, logger=logger, model=config.model, _convert_="partial", _recursive_=False
+        config.trainer, callbacks=callbacks, logger=logger, model=config.model, _convert_="partial", _recursive_=False
     )
     trainer.build()
 
@@ -95,15 +94,12 @@ def train(config: DictConfig) -> Optional[float]:
     # Train the model
     log.info("Starting training!")
 
-    history = trainer.fit(training_dataset,
-                          steps_per_epoch=datamodule.steps_per_epoch,
-                          validation_dataset=validation_dataset)
+    history = trainer.fit(
+        training_dataset, steps_per_epoch=datamodule.steps_per_epoch, validation_dataset=validation_dataset
+    )
+
+    history.history
     # print(history)
-    # Evaluate model on test set, using the best model achieved during training
-    if config.get("test_after_training") and not config.trainer.get("fast_dev_run"):
-        testing_dataset = datamodule.get_tf_dataset('testing')
-        log.info("Starting testing!")
-        trainer.evaluate(testing_dataset)
 
     # Make sure everything closed properly
     # log.info("Finalizing!")
@@ -129,4 +125,3 @@ def train(config: DictConfig) -> Optional[float]:
             return min(history.history[optimized_metric])
         else:
             raise ValueError
-

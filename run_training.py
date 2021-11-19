@@ -31,4 +31,9 @@ def main(config: DictConfig):
 
 
 if __name__ == "__main__":
-    main()
+    # AFAIK: Best method to get ride of exception at the
+    # Read more here:
+    try:
+        main()
+    except OSError:
+        pass

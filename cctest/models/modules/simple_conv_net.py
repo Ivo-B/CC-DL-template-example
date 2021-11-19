@@ -3,16 +3,18 @@ import tensorflow.keras as keras
 
 
 class SimpleConvNet(keras.Model):
-    def __init__(self,
-                 input_shape: tuple,
-                 conv1_size: int,
-                 conv2_size: int,
-                 conv3_size: int,
-                 conv4_size: int,
-                 output_size: int, **kwargs):
+    def __init__(
+        self,
+        input_shape: tuple,
+        conv1_size: int,
+        conv2_size: int,
+        conv3_size: int,
+        conv4_size: int,
+        output_size: int,
+        **kwargs
+    ):
         super(SimpleConvNet, self).__init__(name="SimpleConvNet")
-        self.inputs_ = keras.layers.Input(shape=input_shape)
-        self._set_input_layer(self.inputs_)
+        self.input_shape_ = tuple(input_shape)
 
         self.conv1_size = conv1_size
         self.conv2_size = conv2_size
@@ -41,26 +43,14 @@ class SimpleConvNet(keras.Model):
         self.pooling = keras.layers.GlobalMaxPooling2D()
         self.dense1 = keras.layers.Dense(output_size)
 
-        self.build()
+        # adding batch dim with None
+        self.build((None,) + self.input_shape_)
 
-    def _set_input_layer(self, inputs):
-        """add inputLayer to model and display InputLayers in model.summary()
-
-        Args:
-            inputs ([dict]): the result from `tf.keras.Input`
-        """
-        if isinstance(inputs, dict):
-            self.inputs_layer = {n: keras.layers.InputLayer(input_tensor=i, name=n)
-                                 for n, i in inputs.items()}
-        elif isinstance(inputs, (list, tuple)):
-            self.inputs_layer = [keras.layers.InputLayer(input_tensor=i, name=i.name)
-                                 for i in inputs]
-        elif tf.is_tensor(inputs):
-            self.inputs_layer = keras.layers.InputLayer(input_tensor=inputs, name=inputs.name)
-
-    def build(self):
-        super(SimpleConvNet, self).build(self.inputs_.shape if tf.is_tensor(self.inputs_) else self.inputs_)
-        self.out = self.call(self.inputs_)
+    # AFAIK: The most convenient method to print model.summary() and keras.utils.plot_model()
+    # similar to the sequential or functional API like.
+    def build_graph(self):
+        x = keras.Input(shape=self.input_shape_)
+        return keras.Model(inputs=[x], outputs=self.call(x))
 
     def call(self, inputs, training=None, mask=None):
         x = self.conv1(inputs)
@@ -86,8 +76,11 @@ class SimpleConvNet(keras.Model):
         return self.dense1(x)
 
     def get_config(self):
-        return {"conv1_size": self.conv1_size,
-                "conv2_size": self.conv2_size,
-                "conv3_size": self.conv3_size,
-                "conv4_size": self.conv4_size,
-                "output_size": self.output_size}
+        return {
+            "input_shape_": self.input_shape_,
+            "conv1_size": self.conv1_size,
+            "conv2_size": self.conv2_size,
+            "conv3_size": self.conv3_size,
+            "conv4_size": self.conv4_size,
+            "output_size": self.output_size,
+        }
