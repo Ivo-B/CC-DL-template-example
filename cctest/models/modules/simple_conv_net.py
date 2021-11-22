@@ -14,8 +14,7 @@ class SimpleConvNet(keras.Model):
         **kwargs
     ):
         super(SimpleConvNet, self).__init__(name="SimpleConvNet")
-        self.inputs_ = keras.layers.Input(shape=input_shape)
-        self._set_input_layer(self.inputs_)
+        self.input_shape_ = tuple(input_shape)
 
         self.conv1_size = conv1_size
         self.conv2_size = conv2_size

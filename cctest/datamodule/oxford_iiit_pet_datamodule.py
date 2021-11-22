@@ -1,9 +1,11 @@
 from functools import partial
 from pathlib import Path
 
-import albumentations as albu
+import hydra
 import numpy as np
 import tensorflow as tf
+from albumentations import BasicTransform, Compose
+from omegaconf import DictConfig
 
 from cctest.datamodule.base_datamodule import TfDataloader, load_data_pair_fn
 from cctest.utils import utils
@@ -140,7 +142,14 @@ class OxfordPetDataset(TfDataloader):
     """
 
     def __init__(
-        self, data_dir: str, train_list: str, val_list: str, test_list: str, batch_size: int, num_gpus: int
+        self,
+        data_dir: str,
+        train_list: str,
+        val_list: str,
+        test_list: str,
+        batch_size: int,
+        num_gpus: int,
+        data_aug: DictConfig,
     ):  # noqa: WPS211, E501
         """__init__.
 
@@ -168,8 +177,25 @@ class OxfordPetDataset(TfDataloader):
         img_val_paths, mask_val_paths = self.load_data(self._data_val_list)
         self._img_val_paths = img_val_paths
         self._mask_val_paths = mask_val_paths
-        self.set_aug_train()
-        self.set_aug_val()
+
+        aug_comp_training: list[BasicTransform] = []
+        aug_comp_validation: list[BasicTransform] = []
+        if data_aug:
+            if data_aug.get("training"):
+                for _, da_conf in data_aug.training.items():
+                    if "_target_" in da_conf:
+                        log.info(f"Instantiating training data transformation <{da_conf._target_}>")
+                        aug_comp_training.append(hydra.utils.instantiate(da_conf))
+
+            for da_key, da_conf in data_aug.items():
+                if "_target_" in da_conf:
+                    log.info(f"Instantiating Data Transformation <{da_conf._target_}>")
+                    transformation = hydra.utils.instantiate(da_conf)
+                    aug_comp_training.append(transformation)
+                    aug_comp_validation.append(transformation)
+
+        self.set_aug_train(aug_comp_training)
+        self.set_aug_val(aug_comp_validation)
         self._val_data_size = len(self._img_val_paths)
         self._train_data_size = len(self._img_train_paths)
         self.steps_per_epoch = self._train_data_size // self._global_batch_size
@@ -195,30 +221,19 @@ class OxfordPetDataset(TfDataloader):
             data_pair = shuffle_data(data_pair)
         return data_pair[0], data_pair[1]
 
-    def set_aug_train(self):
+    def set_aug_train(self, aug_comp):
         """Sets training augmentation.
 
         :return:
         """
-        aug_comp: list = [
-            albu.Flip(p=0.2),  # noqa: WPS432
-            albu.Rotate(limit=90, p=0.2),  # noqa: WPS432
-            albu.RandomBrightnessContrast(p=0.2),  # noqa: WPS432
-            albu.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), max_pixel_value=1.0),  # noqa: WPS432
-        ]
+        self.__class__.aug_comp_train = Compose(aug_comp)
 
-        self.__class__.aug_comp_train = albu.Compose(aug_comp)
-
-    def set_aug_val(self):
+    def set_aug_val(self, aug_comp):
         """Sets validation augmentation.
 
         :return:
         """
-        aug_comp: list = [
-            albu.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), max_pixel_value=1.0),  # noqa: WPS432
-        ]
-
-        self.__class__.aug_comp_val = albu.Compose(aug_comp)
+        self.__class__.aug_comp_val = Compose(aug_comp)
 
     def get_tf_dataset(self, phase: str) -> tf.data.Dataset:
         """Creates and returns full tf dataset.

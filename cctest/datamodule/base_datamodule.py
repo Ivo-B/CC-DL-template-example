@@ -109,11 +109,11 @@ class TfDataloader(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def set_aug_train(self):
+    def set_aug_train(self, aug_comp: list):
         """Setter for class variable `aug_comp_train`."""
         raise NotImplementedError()
 
     @abstractmethod
-    def set_aug_val(self):
+    def set_aug_val(self, aug_comp: list):
         """Setter for class variable `aug_comp_val`."""
         raise NotImplementedError()

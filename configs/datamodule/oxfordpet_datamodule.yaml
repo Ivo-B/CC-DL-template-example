@@ -1,3 +1,6 @@
+defaults:
+  - data_aug: medium_aug.yaml
+
 _target_: cctest.datamodule.oxford_iiit_pet_datamodule.OxfordPetDataset
 
 data_dir: ${data_dir} # data_dir is specified in config.yaml
