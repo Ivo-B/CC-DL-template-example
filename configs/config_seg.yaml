@@ -39,7 +39,7 @@ print_history: True
 # disable python warnings if they annoy you
 ignore_warnings: True
 
-# seed for random number generators in pytorch, numpy and python.random
+# seed for random number generators in tensorflow, numpy and python.random
 seed: null
 
 # name of the run, accessed by loggers

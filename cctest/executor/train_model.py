@@ -57,7 +57,7 @@ def train(config: DictConfig) -> Optional[float]:
         config.datamodule,
         num_gpus=config.trainer.get("gpus"),
         data_aug=config.datamodule.get("data_aug"),
-        _convert_="partial",
+        _convert_=None,
         _recursive_=False,
     )
     training_dataset = datamodule.get_tf_dataset("training")

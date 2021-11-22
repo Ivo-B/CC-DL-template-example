@@ -1,9 +1,11 @@
 from functools import partial
 from pathlib import Path
 
-import albumentations as albu
+import hydra
 import numpy as np
 import tensorflow as tf
+from albumentations import BasicTransform, Compose
+from omegaconf import DictConfig
 
 from cctest.datamodule.base_datamodule import TfDataloader, load_data_fn
 from cctest.utils import utils
@@ -19,9 +21,9 @@ def aug_train_fn(image: np.array) -> tf.Tensor:
     :param image:
     :return:
     """
-    input_data = {'image': image}
+    input_data = {"image": image}
     aug_data = MNISTDataset.aug_comp_train(**input_data)
-    return tf.cast(aug_data['image'], tf.float32)
+    return tf.cast(aug_data["image"], tf.float32)
 
 
 def aug_val_fn(image: np.array) -> tf.Tensor:
@@ -30,13 +32,17 @@ def aug_val_fn(image: np.array) -> tf.Tensor:
     :param image:
     :return:
     """
-    input_data = {'image': image}
+    input_data = {"image": image}
     aug_data = MNISTDataset.aug_comp_val(**input_data)
-    return tf.cast(aug_data['image'], tf.float32)
+    return tf.cast(aug_data["image"], tf.float32)
 
 
 def process_data_fn(
-    image: tf.Tensor, label: tf.Tensor, phase: str, img_shape: list, num_classes: int,
+    image: tf.Tensor,
+    label: tf.Tensor,
+    phase: str,
+    img_shape: list,
+    num_classes: int,
 ) -> (tf.Tensor, tf.Tensor):
     """Pipeline for preprocessing data.
 
@@ -47,13 +53,17 @@ def process_data_fn(
     :param num_classes:
     :return:
     """
-    if phase == 'training':
+    if phase == "training":
         aug_img = tf.numpy_function(
-            func=aug_train_fn, inp=[image], Tout=tf.float32,
+            func=aug_train_fn,
+            inp=[image],
+            Tout=tf.float32,
         )
-    elif phase == 'validation':
+    elif phase == "validation":
         aug_img = tf.numpy_function(
-            func=aug_val_fn, inp=[image], Tout=tf.float32,
+            func=aug_val_fn,
+            inp=[image],
+            Tout=tf.float32,
         )
     else:
         raise ValueError
@@ -75,6 +85,7 @@ class MNISTDataset(TfDataloader):
         data_test_list: str,
         batch_size: int,
         num_gpus: int,
+        data_aug: DictConfig,
     ):
         """__init__.
 
@@ -84,6 +95,7 @@ class MNISTDataset(TfDataloader):
         :param data_test_list:
         :param batch_size:
         :param num_gpus:
+        :param data_aug:
         """
         self._data_dir = Path(data_dir)
         self._data_training_list = data_training_list
@@ -103,14 +115,33 @@ class MNISTDataset(TfDataloader):
         img_val_paths, val_labels = self.load_data(data_val_list)
         self._img_val_paths = img_val_paths
         self._val_labels = val_labels
-        self.set_aug_train()
-        self.set_aug_val()
+
+        aug_comp_training: list[BasicTransform] = []
+        aug_comp_validation: list[BasicTransform] = []
+        if data_aug:
+            if data_aug.get("training"):
+                for _, da_conf in data_aug.training.items():
+                    if "_target_" in da_conf:
+                        log.info(f"Instantiating training data transformation <{da_conf._target_}>")
+                        aug_comp_training.append(hydra.utils.instantiate(da_conf))
+
+            for da_key, da_conf in data_aug.items():
+                if "_target_" in da_conf:
+                    log.info(f"Instantiating Data Transformation <{da_conf._target_}>")
+                    transformation = hydra.utils.instantiate(da_conf)
+                    aug_comp_training.append(transformation)
+                    aug_comp_validation.append(transformation)
+
+        self.set_aug_train(aug_comp_training)
+        self.set_aug_val(aug_comp_validation)
         self._val_data_size = len(self._img_val_paths)
         self._train_data_size = len(self._img_train_paths)
         self.steps_per_epoch = self._train_data_size // self._global_batch_size
 
     def load_data(
-        self, data_list: str, do_shuffle: bool = True,
+        self,
+        data_list: str,
+        do_shuffle: bool = True,
     ) -> tuple[np.array, np.array]:
         """load_data.
 
@@ -120,14 +151,14 @@ class MNISTDataset(TfDataloader):
         """
         x_data: list = []
         y_data: list = []
-        with open(self._data_dir / data_list, 'r') as file_stream:
+        with open(self._data_dir / data_list, "r") as file_stream:
             for line in file_stream.readlines():
                 file_path: str
                 label: str
-                file_path, label = line.split(',')
-                x_data.append(str(self._data_dir / 'processed' / file_path))
+                file_path, label = line.split(",")
+                x_data.append(str(self._data_dir / "processed" / file_path))
                 y_data.append(int(label))
-        log.debug('x_len, y_len: %d, %d', len(x_data), len(y_data))
+        log.debug("x_len, y_len: %d, %d", len(x_data), len(y_data))
         x_data = np.array(x_data)
         y_data = np.array(y_data)
         if do_shuffle:
@@ -138,30 +169,20 @@ class MNISTDataset(TfDataloader):
             y_data = y_data[indexes]
         return x_data, y_data
 
-    def set_aug_train(self):
+    def set_aug_train(self, aug_comp):
         """Sets training augmentation.
 
         :return:
         """
-        aug_comp: list = [
-            albu.Flip(p=0.2),
-            albu.Rotate(limit=90, p=0.2),
-            albu.RandomBrightnessContrast(p=0.2),
-            albu.Normalize(mean=0.1307, std=0.3081, max_pixel_value=1.0),
-        ]
+        self.__class__.aug_comp_train = Compose(aug_comp)
 
-        self.__class__.aug_comp_train = albu.Compose(aug_comp)
-
-    def set_aug_val(self):
+    def set_aug_val(self, aug_comp):
         """Sets validation augmentation.
 
         :return:
         """
-        aug_comp: list = [
-            albu.Normalize(mean=0.1307, std=0.3081, max_pixel_value=1.0),
-        ]
 
-        self.__class__.aug_comp_val = albu.Compose(aug_comp)
+        self.__class__.aug_comp_val = Compose(aug_comp)
 
     def get_tf_dataset(self, phase: str) -> tf.data.Dataset:
         """Creates and returns full tf dataset.
@@ -169,21 +190,24 @@ class MNISTDataset(TfDataloader):
         :param phase:
         :return:
         """
-        if phase == 'training':
+        if phase == "training":
             img_paths, labels = self._img_train_paths, self._train_labels
-        elif phase == 'validation':
+        elif phase == "validation":
             img_paths, labels = self._img_val_paths, self._val_labels
         else:
             raise ValueError
         dataset = tf.data.Dataset.from_tensor_slices((img_paths, labels))
 
-        if phase == 'training':
+        if phase == "training":
             dataset = dataset.shuffle(
-                len(img_paths), reshuffle_each_iteration=True, seed=42,
+                len(img_paths),
+                reshuffle_each_iteration=True,
+                seed=42,
             )
 
         dataset = dataset.map(
-            load_data_fn, num_parallel_calls=AUTOTUNE,
+            load_data_fn,
+            num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
 
         dataset = dataset.map(
@@ -196,14 +220,13 @@ class MNISTDataset(TfDataloader):
             num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
 
-        if phase == 'training':
+        if phase == "training":
             dataset = dataset.repeat()
         dataset = dataset.batch(
-            self._global_batch_size, drop_remainder=True,
+            self._global_batch_size,
+            drop_remainder=True,
         ).prefetch(buffer_size=AUTOTUNE)
 
         options = tf.data.Options()
-        options.experimental_distribute.auto_shard_policy = (
-            tf.data.experimental.AutoShardPolicy.DATA
-        )
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
         return dataset.with_options(options)
