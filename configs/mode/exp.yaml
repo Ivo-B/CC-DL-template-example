@@ -5,7 +5,7 @@
 
 experiment_mode: True
 
-# allows for custom naming of the experiment
+# forces custom naming of the experiment
 name: ???
 
 hydra:

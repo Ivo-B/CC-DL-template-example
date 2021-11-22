@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import hydra
 import tensorflow as tf
+import wandb
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
@@ -16,14 +17,15 @@ log = utils.get_logger(__name__)
 
 def train(config: DictConfig) -> Optional[float]:
     """Contains training pipeline.
-    Instantiates all PyTorch Lightning objects from config.
+    Instantiates all objects from config.
     Args:
         config (DictConfig): Configuration composed by Hydra.
     Returns:
         Optional[float]: Metric score for hyperparameter optimization.
     """
+    using_wandb = False
 
-    # Set seed for random number generators in pytorch, numpy and python.random
+    # Set seed for random number generators in tensorflow, numpy and python.random
     if config.get("seed"):
         utils.set_all_seeds(config.seed)
 
@@ -41,6 +43,7 @@ def train(config: DictConfig) -> Optional[float]:
     else:
         # use all GPUs
         config.trainer.gpus = len(physical_devices)
+    # TF usually allocates all memory of the GPU
     if config.trainer.get("gpus") > 0:
         visible_devices = tf.config.get_visible_devices("GPU")
         for gpu in visible_devices:
@@ -50,7 +53,13 @@ def train(config: DictConfig) -> Optional[float]:
     # Doing data stuff
     #############################
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule: MNISTDataset = hydra.utils.instantiate(config.datamodule, num_gpus=config.trainer.get("gpus"))
+    datamodule = hydra.utils.instantiate(
+        config.datamodule,
+        num_gpus=config.trainer.get("gpus"),
+        data_aug=config.datamodule.get("data_aug"),
+        _convert_="partial",
+        _recursive_=False,
+    )
     training_dataset = datamodule.get_tf_dataset("training")
     validation_dataset = datamodule.get_tf_dataset("validation")
 
@@ -67,10 +76,15 @@ def train(config: DictConfig) -> Optional[float]:
     # Init loggers
     logger: List[Callback] = []
     if "logger" in config:
-        for _, lg_conf in config.logger.items():
+        for lg_key, lg_conf in config.logger.items():
+            if "wandb_init" in lg_key:
+                using_wandb = True
+                log.info(
+                    f"Instantiating wandb run: <entity={lg_conf.user}>, <project={lg_conf.project}>, <name={lg_conf.name}>",
+                )
+                wandb.init(entity=lg_conf.user, project=lg_conf.project, name=lg_conf.name)
+
             if "_target_" in lg_conf:
-                if "wandb" in lg_conf._target_:
-                    utils.using_wandb = True and utils.using_wandb
                 log.info(f"Instantiating logger <{lg_conf._target_}>")
                 logger.append(hydra.utils.instantiate(lg_conf))
 
@@ -89,7 +103,7 @@ def train(config: DictConfig) -> Optional[float]:
     trainer.build()
 
     # Send some parameters from config to wandb logger
-    if utils.using_wandb:
+    if using_wandb:
         log.info("Logging hyperparameters to wandb!")
         utils.log_hyperparameters(
             config=config,
@@ -110,14 +124,9 @@ def train(config: DictConfig) -> Optional[float]:
         utils.print_history(history.history)
 
     # Make sure everything closed properly
-    log.info("Finalizing!")
-    utils.finish(
-        config=config,
-        datamodule=datamodule,
-        trainer=trainer,
-        callbacks=callbacks,
-        logger=logger,
-    )
+    if using_wandb:
+        # without this sweeps with wandb logger might crash!
+        wandb.finish()
 
     # Return metric score for hyperparameter optimization
     optimized_metric = config.get("optimized_metric")
