@@ -1,0 +1,14 @@
+# https://wandb.ai/quickstart/keras
+
+wandb_init:
+  user: null
+  project: CC_example_template
+  name: ${name}
+
+wandb:
+  _target_: wandb.keras.WandbCallback
+  monitor: val_loss
+  mode: min
+  save_model: false
+  save_graph: true
+  log_weights: true

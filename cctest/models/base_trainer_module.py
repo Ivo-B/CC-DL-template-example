@@ -23,7 +23,6 @@ class TrainingModule:
         logger: list[tf.keras.callbacks.Callback],
     ):
         self.gpus = gpus
-        self.workers = workers
         self.epochs = epochs
 
         # combine all callbacks
@@ -66,9 +65,6 @@ class TrainingModule:
             log.info(f"Instantiating optimizer <{self.optimizer_fn['_target_']}>")
             self.optimizer_fn = hydra.utils.instantiate(self.optimizer_fn)
 
-        log.info(f"Instantiating lr scheduler <{self.lr_scheduler['_target_']}>")
-        self.lr_scheduler = hydra.utils.instantiate(self.lr_scheduler)
-
         self.model.compile(optimizer=self.optimizer_fn, loss=self.loss_fn, metrics=self.metric_fn)
 
     def fit(self, training_dataset: tf.data.Dataset, steps_per_epoch: int, validation_dataset: tf.data.Dataset = None):
@@ -78,7 +74,7 @@ class TrainingModule:
             steps_per_epoch=steps_per_epoch,
             validation_data=validation_dataset,
             callbacks=self.callbacks + [self.lr_scheduler],
-            verbose=1,
+            verbose=2,
             workers=1,
             use_multiprocessing=False,
             shuffle=False,
