@@ -9,7 +9,8 @@ defaults:
   - callbacks: default.yaml
   - logger: null # set logger here or use command line (e.g. `python run.py logger=wandb`)
 
-  - mode: default.yaml
+  # every run/experiment is sacred (think before doing an experiment), everything else is debugging
+  - mode: debug.yaml
 
   - experiment: null
   - hparams_search: null
