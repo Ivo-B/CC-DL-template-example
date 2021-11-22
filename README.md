@@ -1,6 +1,6 @@
 # Our example cookiecutter project
 <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.9-3670A0?style=flat-square&logo=python&logoColor=ffdd54"></a>
-<a href="https://pytorch.org/get-started/locally/"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.4-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
+<a href="https://pytorch.org/get-started/locally/"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.7-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: hydra" src="https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=flat-square&labelColor=gray"></a>
 <a href="https://hub.docker.com/r/ashlev/lightning-hydra"><img alt="Docker" src="https://img.shields.io/badge/docker-257bd6?style=flat-square&logo=docker&logoColor=white"></a><br>
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg?style=flat-square)](https://www.nature.com/articles/nature14539)
@@ -13,11 +13,10 @@ We need some project explanation here!
 - poetry
 - python 3.9
 
-Install pyenv and poetry:
-````yaml
-# PyEnv for Ubuntu
-curl https://pyenv.run | bash
+You can use your favorite method to provide python 3.9 for poetry. I recommend PyEnv but you can also use Conda etc.
 
+Install poetry:
+````yaml
 # Poetry for Ubuntu
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
 ````
@@ -29,12 +28,12 @@ git clone https://github.com/Ivo-B/Example_CC_DL_template
 cd Example_CC_DL_template
 
 poetry install
-# use poetry
-poetry shell
-# or pyenv
+# activate Virtualenv by
 source ./.venv/Scripts/activate
+# or use poetry
+poetry shell
 
-#activate pre-commit
+# activate pre-commit
 pre-commit install
 ````
 Template contains example with MNIST classification.<br>
@@ -124,7 +123,7 @@ Template contains example with MNIST classification.<br>
 
 ### How To Get Started
 
-- First, you should probably get familiar with [PyTorch Lightning](https://www.pytorchlightning.ai)
+- First, you should probably get familiar with [Tensorflow](https://www.tensorflow.org/)
 - Next, go through [Hydra quick start guide](https://hydra.cc/docs/intro/) and [basic Hydra tutorial](https://hydra.cc/docs/tutorials/basic/your_first_app/simple_cli/)
   <br>
 
@@ -220,7 +219,7 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-seed: 12345
+seed: "OxCAFFEE"
 
 trainer:
   epochs: 5
@@ -258,7 +257,7 @@ defaults:
 # instead we define all modules and their paths directly in this config,
 # so everything is stored in one place
 
-seed: 12345
+seed: "OxCAFFEE"
 
 trainer:
   loss:
@@ -287,7 +286,6 @@ trainer:
   # '>0' to train on specific num of GPUs in a node,
   # `0` to train on CPU only
   gpus: -1
-  workers: 10
   epochs: 5
   # resume_from_checkpoint: ${work_dir}/last.ckpt
 

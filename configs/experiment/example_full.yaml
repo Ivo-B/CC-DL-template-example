@@ -14,7 +14,7 @@ defaults:
 # instead we define all modules and their paths directly in this config,
 # so everything is stored in one place
 
-seed: 12345
+seed: "OxCAFFEE"
 
 trainer:
   loss:
@@ -43,7 +43,6 @@ trainer:
   # '>0' to train on specific num of GPUs in a node,
   # `0` to train on CPU only
   gpus: -1
-  workers: 10
   epochs: 5
   # resume_from_checkpoint: ${work_dir}/last.ckpt
 
