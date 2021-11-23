@@ -1,6 +1,6 @@
 # Our example cookiecutter project
 <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.9-3670A0?style=flat-square&logo=python&logoColor=ffdd54"></a>
-<a href="https://pytorch.org/get-started/locally/"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.7-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
+<a href="https://www.tensorflow.org/install"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.7-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: hydra" src="https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=flat-square&labelColor=gray"></a>
 <a href="https://hub.docker.com/r/ashlev/lightning-hydra"><img alt="Docker" src="https://img.shields.io/badge/docker-257bd6?style=flat-square&logo=docker&logoColor=white"></a><br>
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg?style=flat-square)](https://www.nature.com/articles/nature14539)
@@ -13,7 +13,7 @@ We need some project explanation here!
 - poetry
 - python 3.9
 
-You can use your favorite method to provide python 3.9 for poetry. I recommend PyEnv but you can also use Conda etc.
+You can use your favorite method to provide python 3.9 for poetry. I recommend PyEnv, but you can also use Conda etc.
 
 Install poetry:
 ````yaml
@@ -26,20 +26,35 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-
 # clone project
 git clone https://github.com/Ivo-B/Example_CC_DL_template
 cd Example_CC_DL_template
+````
 
+If you use conda to provide the correct Python version, installation and usability is a bit different:
+````yaml
+# change "cctest_py39" to your desired environment name
+conda create -n cctest_py39 python=3.9
+
+conda activate cctest_py39
+# install all dependencies into your conda env
+poetry install
+# activate pre-commit
+pre-commit install
+````
+
+If you use PyEnv ot provide Python, your Virtualenvironment will be installed into the project´folder `.venv`
+````yaml
 poetry install
 # activate Virtualenv by
 source ./.venv/Scripts/activate
-# or use poetry
-poetry shell
 
 # activate pre-commit
 pre-commit install
 ````
-Template contains example with MNIST classification.<br>
+
+Template contains examples with MNIST classification and Oxfordpet Segmentation.<br>
  1. edit [.env.example](.env.example) and set your PROJECT_PATH, rename file to `.env`
  2. run jupyter notebook `notebooks/1.0-IBa-data-download-and-processed.ipynb` to download and prepare data
- 3. Now your can simply run `python run.py`.
+ 3. To run the classification example, use `python run_training.py`.
+ 3. To run the segmentation example, use `python run_training.py --config-name config_seg`.
 
 
 ## Project Organization
