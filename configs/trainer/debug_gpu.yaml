@@ -1,7 +1,0 @@
-# TODO: update for your script!
-defaults:
-  - default.yaml
-
-gpus: -1
-
-epochs: 1

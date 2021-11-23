@@ -1,5 +1,5 @@
 defaults:
-  - data_aug: medium_aug.yaml
+  - data_aug: oxfordpet_medium_aug.yaml
 
 _target_: cctest.datamodule.oxford_iiit_pet_datamodule.OxfordPetDataset
 

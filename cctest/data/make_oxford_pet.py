@@ -8,10 +8,6 @@ from skimage import io
 from skimage.transform import resize
 from sklearn.model_selection import StratifiedShuffleSplit
 
-import cctest.utils.utils as utils
-
-
-log = utils.get_logger(__name__)
 # find .env automagically by walking up directories until it's found, then
 # load up the .env entries as environment variables
 load_dotenv(find_dotenv())
@@ -26,7 +22,7 @@ def download_and_extract_data(root_path, file_name: str):
         extract=True,
         origin=origin_folder + file_name,
     )
-    os.remove(root_path / file_name)
+    # os.remove(root_path / file_name)
 
 
 def load_annotation_data(root_path):
@@ -77,6 +73,7 @@ def pre_process_data(full_dataset):
 
 
 def train_val_test_spitting(full_dataset):
+    output_path = Path(os.environ.get("PROJECT_DIR")) / "data"
     all_x = []
     all_y = []
     for idx in range(len(full_dataset)):
@@ -85,38 +82,42 @@ def train_val_test_spitting(full_dataset):
     all_x = np.array(all_x)
     all_y = np.array(all_y)
 
+    # First split of all data into training+validation and testing
     sss = StratifiedShuffleSplit(n_splits=1, test_size=2204, random_state=42)
     for train_index, test_index in sss.split(all_x, all_y):
         X_train_val, X_test = all_x[train_index], all_x[test_index]
         y_train_val, y_test = all_y[train_index], all_y[test_index]
 
-    path = Path(os.environ.get("PROJECT_DIR")) / "data"
-    with open(path / "OxfordPet_test_data.txt", "a") as f:
+    with open(output_path / "OxfordPet_test_data.txt", "w") as f:
         for name, y in zip(X_test, y_test):
             f.write(f"{name}.npy, {y}\n")
 
+    # Second split of "training+validation" into training and validation
     sss = StratifiedShuffleSplit(n_splits=1, test_size=514, random_state=42)
     for train_index, test_index in sss.split(X_train_val, y_train_val):
-        X_train, X_val = all_x[train_index], all_x[test_index]
-        y_train, y_val = all_y[train_index], all_y[test_index]
+        X_train, X_val = X_train_val[train_index], X_train_val[test_index]
+        y_train, y_val = y_train_val[train_index], y_train_val[test_index]
 
-    with open(path / "OxfordPet_training_data.txt", "a") as f:
+    with open(output_path / "OxfordPet_training_data.txt", "w") as f:
         for name, y in zip(X_train, y_train):
             f.write(f"{name}.npy, {y}\n")
 
-    with open(path / "OxfordPet_validation_data.txt", "a") as f:
+    with open(output_path / "OxfordPet_validation_data.txt", "w") as f:
         for name, y in zip(X_val, y_val):
             f.write(f"{name}.npy, {y}\n")
 
 
 if __name__ == "__main__":
     root_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "raw" / "oxford-pet"
-    log.info(f"Creating folder for download: {root_path}")
-    os.makedirs(root_path, exist_ok=True)
 
+    print(f"Creating folder for download: {root_path}")
+    os.makedirs(root_path, exist_ok=True)
     download_and_extract_data(root_path, "images.tar.gz")
     download_and_extract_data(root_path, "annotations.tar.gz")
 
+    print(f"Load data and pre-process it.")
     full_dataset = load_annotation_data(root_path)
     pre_process_data(full_dataset)
+
+    print(f"Creating training, validation, and test split.")
     train_val_test_spitting(full_dataset)

@@ -52,18 +52,19 @@ pre-commit install
 
 Template contains examples with MNIST classification and Oxfordpet Segmentation.<br>
  1. edit [.env.example](.env.example) and set your PROJECT_PATH, rename file to `.env`
- 2. run jupyter notebook `notebooks/1.0-IBa-data-download-and-processed.ipynb` to download and prepare data
+ 2. To download and prepare data, use `make data_mnist` or `make data_oxford`
  3. To run the classification example, use `python run_training.py`.
- 3. To run the segmentation example, use `python run_training.py --config-name config_seg`.
+ 4. To run the segmentation example, use `python run_training.py --config-name config_seg`.
 
 
 ## Project Organization
 ```
-├──.venv                <- Local poetry environment
+├──.venv                        <- Local poetry environment
 │   └──.gitkeep
-├── configs                 <- Hydra configuration files
+├── configs                     <- Hydra configuration files
 │   ├── callbacks               <- Callbacks configs
 │   ├── datamodule              <- Datamodule configs
+│   │   └── data_aug            <- TODO
 │   ├── experiment              <- Experiment configs
 │   ├── hparams_search          <- Hyperparameter search configs
 │   ├── mode                    <- Running mode configs
@@ -124,13 +125,16 @@ Template contains examples with MNIST classification and Oxfordpet Segmentation.
 │                             the required plugin for your IDE in order to enable it.
 ├── .gitignore         <- file that specifies what should we commit into
 │                             the repository and we should not.
+├── .pre-commit-config.yaml <- TODO
 ├── LICENSE
+├── Makefile            <- Makefile with commands like `make data_mnist`
 ├── poetry.toml         <- poetry config file to install enviroment locally
 ├── poetry.lock         <- lock file for dependencies. It is used to install exactly
 │                         the same versions of dependencies on each build
 ├── pyproject.toml      <- The project's dependencies for reproducing the
 │                         analysis environment
 ├── README.md           <- The top-level README for developers using this project.
+├── run_training.py     <- TODO
 └── setup.cfg           <- configuration file, that is used by all tools in this project```
 ```
 
@@ -395,3 +399,13 @@ By default, logs have the following structure:
 │       └── ...
 │
 ```
+
+
+### Based on:
+[cookiecutter-data-science](https://github.com/drivendata/cookiecutter-data-science)
+
+[wemake-django-template](https://github.com/wemake-services/wemake-django-template)
+
+[Deep-Learning-In-Production](https://github.com/The-AI-Summer/Deep-Learning-In-Production)
+
+[Deep-Learning-In-Production](https://github.com/The-AI-Summer/Deep-Learning-In-Production)

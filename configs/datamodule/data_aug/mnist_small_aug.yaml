@@ -3,11 +3,6 @@ training:
     _target_: albumentations.Flip
     p: 0.2
 
-  random_rotate:
-    _target_: albumentations.Rotate
-    p: 0.2
-    limit: 90
-
   random_brightness_contrast:
     _target_: albumentations.RandomBrightnessContrast
     p: 0.2

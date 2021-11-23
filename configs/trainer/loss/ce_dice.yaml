@@ -1,6 +1,7 @@
 _target_: cctest.utils.my_losses.CESegLoss
 
 from_logits: false
+alpha: 0.7
 include_background: true
 squared_pred: false
 jaccard: false

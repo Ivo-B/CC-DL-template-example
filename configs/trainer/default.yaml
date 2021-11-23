@@ -11,7 +11,7 @@ _target_: cctest.models.base_trainer_module.TrainingModule
 # `0` to train on CPU only,
 gpus: -1
 
-epochs: 5
+epochs: 10
 #weights_summary: null
 #progress_bar_refresh_rate: 5
 #resume_from_checkpoint: null

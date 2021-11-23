@@ -7,7 +7,7 @@ defaults:
   - model: oxfordpet_model_unet.yaml
   - datamodule: oxfordpet_datamodule.yaml
   - callbacks: default.yaml
-  - logger: null # set logger here or use command line (e.g. `python run.py logger=wandb`)
+  - logger: many_loggers.yaml # set logger here or use command line (e.g. `python run.py logger=wandb`)
 
   # every run/experiment is sacred (think before doing an experiment), everything else is debugging
   - mode: debug.yaml
@@ -16,11 +16,12 @@ defaults:
   - hparams_search: null
 
   - override trainer/loss: bce_dice.yaml
-  - override trainer/metric: dice.yaml
+  - override trainer/metric: many_matrices.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog
+
 
 # path to original working directory
 # hydra hijacks working directory by changing it to the current log directory,

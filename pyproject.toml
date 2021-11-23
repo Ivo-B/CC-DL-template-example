@@ -10,7 +10,7 @@ style = "https://raw.githubusercontent.com/wemake-services/wemake-python-stylegu
 [tool.poetry]
 name = "CC-test"
 description = "Das ist ein Test"
-version = "0.1.0"
+version = "0.1.4"
 readme = "README.md"
 authors = ["Ivo Matteo Baltruschat <ivo.baltruschat@desy.de>"]
 
@@ -30,11 +30,12 @@ hydra-core = "^1.1.1"
 hydra-colorlog = "^1.1.0"
 hydra-optuna-sweeper = "^1.1.1"
 
-
 rich = "^10.12.0"
 wandb = "^0.12.7"
 flatdict = "^4.0.1"
-hydra-ray-launcher = {path = "../hydra/plugins/hydra_ray_launcher"}
+seaborn-image = "^0.4.4"
+seaborn = "^0.11.2"
+# hydra-ray-launcher, add later whenn version is bumped
 
 
 

@@ -1,10 +1,10 @@
 defaults:
-  - data_aug: medium_aug.yaml
+  - data_aug: mnist_small_aug.yaml
 
 _target_: cctest.datamodule.mnist_datamodule.MNISTDataset
 
 data_dir: ${data_dir} # data_dir is specified in config.yaml
-data_training_list: "training_data.txt"
-data_val_list: "validation_data.txt"
-data_test_list: "test_data.txt"
-batch_size: 64
+data_training_list: "MNIST_training_data.txt"
+data_val_list: "MNIST_validation_data.txt"
+data_test_list: "MNIST_test_data.txt"
+batch_size: 128 # will be scaled by the number of GPUs

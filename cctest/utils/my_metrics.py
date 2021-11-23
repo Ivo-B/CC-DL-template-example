@@ -14,11 +14,11 @@ from tensorflow.python.ops import (
 class MeanSegMetric(Metric):
     """Computes the mean Dice metric. """
 
-    def __init__(self, jaccard, from_logits, include_background, num_classes, dtype=None):
+    def __init__(self, jaccard, from_logits, include_background, num_classes, dtype="float32"):
         if jaccard:
-            super(MeanSegMetric, self).__init__(name="mean_iou")
+            super(MeanSegMetric, self).__init__(name="mean_iou", dtype=dtype)
         else:
-            super(MeanSegMetric, self).__init__(name="mean_dice")
+            super(MeanSegMetric, self).__init__(name="mean_dice", dtype=dtype)
         self.jaccard = jaccard
         self.num_classes = num_classes
         self.from_logits = from_logits

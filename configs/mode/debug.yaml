@@ -8,6 +8,9 @@ defaults:
 
 debug_mode: True
 
+# name of the run, accessed by loggers
+name: debugRun_${now:%Y-%m-%d}_${now:%H-%M-%S}
+
 hydra:
   # sets level of all command line loggers to 'DEBUG'
   verbose: True

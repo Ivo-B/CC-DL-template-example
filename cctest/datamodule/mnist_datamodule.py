@@ -156,7 +156,7 @@ class MNISTDataset(TfDataloader):
                 file_path: str
                 label: str
                 file_path, label = line.split(",")
-                x_data.append(str(self._data_dir / "processed" / file_path))
+                x_data.append(str(self._data_dir / "processed/mnist" / file_path))
                 y_data.append(int(label))
         log.debug("x_len, y_len: %d, %d", len(x_data), len(y_data))
         x_data = np.array(x_data)
@@ -181,7 +181,6 @@ class MNISTDataset(TfDataloader):
 
         :return:
         """
-
         self.__class__.aug_comp_val = Compose(aug_comp)
 
     def get_tf_dataset(self, phase: str) -> tf.data.Dataset:

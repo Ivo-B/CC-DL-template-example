@@ -1,4 +1,5 @@
 import os
+import shutil
 from typing import List, Optional
 
 import hydra
@@ -8,9 +9,10 @@ from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
 
-from ..datamodule.mnist_datamodule import MNISTDataset
+from ..datamodule.base_datamodule import TfDataloader
 from ..models.base_trainer_module import TrainingModule
 from ..utils import utils
+from ..utils import my_callback
 
 log = utils.get_logger(__name__)
 
@@ -53,7 +55,7 @@ def train(config: DictConfig) -> Optional[float]:
     # Doing data stuff
     #############################
     log.info(f"Instantiating datamodule <{config.datamodule._target_}>")
-    datamodule = hydra.utils.instantiate(
+    datamodule: TfDataloader = hydra.utils.instantiate(
         config.datamodule,
         num_gpus=config.trainer.get("gpus"),
         data_aug=config.datamodule.get("data_aug"),
@@ -77,6 +79,20 @@ def train(config: DictConfig) -> Optional[float]:
     logger: List[Callback] = []
     if "logger" in config:
         for lg_key, lg_conf in config.logger.items():
+            if "image_logger" in lg_key:
+                log.info(f"Instantiating logger <{lg_conf._target_}>")
+                logger.append(hydra.utils.instantiate(
+                    lg_conf,
+                    sample_batch=next(iter(training_dataset)),
+                    phase="train",
+                    _recursive_=False,))
+                logger.append(hydra.utils.instantiate(
+                    lg_conf,
+                    sample_batch=next(iter(validation_dataset)),
+                    phase="val",
+                    _recursive_=False,))
+                continue
+
             if "wandb_init" in lg_key:
                 using_wandb = True
                 log.info(
@@ -94,10 +110,9 @@ def train(config: DictConfig) -> Optional[float]:
     log.info(f"Instantiating trainer <{config.trainer._target_}>")
     trainer: TrainingModule = hydra.utils.instantiate(
         config.trainer,
-        callbacks=callbacks,
-        logger=logger,
+        callbacks=callbacks + logger,  # CB and Logger are combined for TF
         model=config.model,
-        _convert_="partial",
+        _convert_=None,
         _recursive_=False,
     )
     trainer.build()
@@ -118,6 +133,7 @@ def train(config: DictConfig) -> Optional[float]:
         training_dataset,
         steps_per_epoch=datamodule.steps_per_epoch,
         validation_dataset=validation_dataset,
+        verbose=1 if config.get("debug_mode") else 2,
     )
 
     if config.get("print_history"):

@@ -1,4 +1,4 @@
-.PHONY: clean data lint create_environment
+.PHONY: clean data_mnist data_oxford lint create_environment
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -14,9 +14,13 @@ PYTHON_INTERPRETER = python
 # COMMANDS                                                                      #
 #################################################################################
 
-## Make Dataset
-data:
+## Make Oxfordpet Dataset
+data_oxford:
 	$(PYTHON_INTERPRETER) -m $(MODULE_NAME).data.make_oxford_pet
+
+## Make MNIST Dataset
+data_mnist:
+	$(PYTHON_INTERPRETER) -m $(MODULE_NAME).data.make_mnist
 
 ## Delete all compiled Python files
 clean:

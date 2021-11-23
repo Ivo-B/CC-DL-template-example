@@ -37,8 +37,6 @@ def read_data_pair_fn(image: str, mask: str) -> (tf.Tensor, tf.Tensor):
     :return:
     """
     image = np.load(image)
-    if image.shape == (128, 128, 4):
-        image = image[..., :3]
     mask = np.load(mask)
     return tf.cast(image, tf.float32), tf.cast(mask, tf.uint8)
 
@@ -53,31 +51,6 @@ def load_data_pair_fn(image: str, mask: str) -> (tf.Tensor, tf.Tensor):
     return tf.numpy_function(
         func=read_data_pair_fn,
         inp=[image, mask],
-        Tout=[tf.float32, tf.uint8],
-    )
-
-
-def read_data_fn(image: str, label: int) -> (tf.Tensor, tf.Tensor):
-    """Reading data with numpy.
-
-    :param image:
-    :param label:
-    :return:
-    """
-    image = np.load(image)[..., np.newaxis]
-    return image.astype(np.float32), tf.cast(label, tf.uint8)
-
-
-def load_data_fn(image: str, label: int) -> (tf.Tensor, tf.Tensor):
-    """TF helper function for loading data with numpy.
-
-    :param image:
-    :param label:
-    :return:
-    """
-    return tf.numpy_function(
-        func=read_data_fn,
-        inp=[image, label],
         Tout=[tf.float32, tf.uint8],
     )
 

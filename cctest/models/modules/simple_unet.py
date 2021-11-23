@@ -23,6 +23,7 @@ class SimpleUNet(keras.Model):
             self.down_layers += SimpleUNet.conv2d_block(start_filters, kernel_size, name=f"down{idx}_CB")
             self.down_layers += [keras.layers.MaxPooling2D((2, 2), strides=2, name=f"down{idx}_MP")]
             start_filters = start_filters * 2  # double the number of filters with each layer
+
         self.latent = SimpleUNet.conv2d_block(start_filters, kernel_size, name=f"latent_CB")
 
         self.up_layers = []
@@ -34,7 +35,8 @@ class SimpleUNet(keras.Model):
             self.up_layers += [keras.layers.Concatenate(name=f"up{idx}_Concat")]
             self.up_layers += SimpleUNet.conv2d_block(start_filters, kernel_size, name=f"up{idx}_CB")
 
-        self.conv1 = keras.layers.Conv2D(num_classes, (1, 1), name="conv_logits", activation="softmax")
+        self.conv1 = keras.layers.Conv2D(num_classes, (1, 1), name="conv_logits")
+        self.out_act = keras.layers.Activation('softmax', dtype='float32', name='act_predictions')
 
         # adding batch dim with None
         self.build((None,) + self.input_shape_)
@@ -46,7 +48,8 @@ class SimpleUNet(keras.Model):
             out_list.append(
                 keras.layers.Conv2D(filters, kernel_size, padding="same", use_bias="none", name=f"{name}_{i}_conv")
             )
-            out_list.append(keras.layers.experimental.SyncBatchNormalization(name=f"{name}_{i}_syncBN"))
+            # out_list.append(keras.layers.experimental.SyncBatchNormalization(name=f"{name}_{i}_syncBN"))
+            out_list.append(keras.layers.BatchNormalization(name=f"{name}_{i}_BN"))
             out_list.append(keras.layers.LeakyReLU(alpha=2e-1, name=f"{name}_{i}_leakyRelu"))
         return out_list
 
@@ -75,7 +78,8 @@ class SimpleUNet(keras.Model):
             else:
                 x = layer(x)
 
-        return self.conv1(x)
+        x = self.conv1(x)
+        return self.out_act(x)
 
     def get_config(self):
         return {

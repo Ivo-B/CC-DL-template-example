@@ -4,119 +4,87 @@ from pathlib import Path
 import numpy as np
 from dotenv import find_dotenv, load_dotenv
 from keras.utils.data_utils import get_file
-from skimage import io
-from skimage.transform import resize
 from sklearn.model_selection import StratifiedShuffleSplit
 
-import cctest.utils.utils as utils
-
-
-log = utils.get_logger(__name__)
 # find .env automagically by walking up directories until it's found, then
 # load up the .env entries as environment variables
 load_dotenv(find_dotenv())
 
 
-def download_and_extract_data(root_path, file_name: str):
-    origin_folder = "http://www.robots.ox.ac.uk/~vgg/data/pets/data/"
-    get_file(
-        fname=file_name,
-        cache_dir=Path(os.environ.get("PROJECT_DIR")) / "data" / "raw",
-        cache_subdir="oxford-pet",
-        extract=True,
-        origin=origin_folder + file_name,
-    )
-    os.remove(root_path / file_name)
-
-
 def load_annotation_data(root_path):
-    all_data = []
-    with open(root_path / "annotations" / "list.txt", "r") as images_list:
-        for line in images_list.readlines():
-            if "#" in line:
-                continue
-            image_name, label, species, _ = line.strip().split(" ")
-            trimaps_dir_path = os.path.join(root_path, "annotations", "trimaps")
+    with np.load(root_path, allow_pickle=True) as f:  # pylint: disable=unexpected-keyword-arg
+        x_train, y_train = f['x_train'], f['y_train']
+        x_test, y_test = f['x_test'], f['y_test']
 
-            label = int(label) - 1
-            species = int(species) - 1
-
-            trimap_name = image_name + ".png"
-            record = {
-                "image": os.path.join(root_path, "images", image_name + ".jpg"),
-                "label": label,
-                "species": species,
-                "file_name": image_name,
-                "segmentation_mask": os.path.join(trimaps_dir_path, trimap_name),
-            }
-            all_data.append(record)
-    return all_data
+    all_x = np.concatenate((x_train, x_test))
+    all_y = np.concatenate((y_train, y_test))
+    return all_x, all_y
 
 
 def pre_process_data(full_dataset):
-    output_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "processed" / "oxford-pet"
+    output_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "processed" / "mnist"
     os.makedirs(output_path, exist_ok=True)
-    os.makedirs(output_path / "images", exist_ok=True)
-    os.makedirs(output_path / "masks", exist_ok=True)
 
+    # norm to 1
+    full_dataset = full_dataset / 255
+
+    file_names = []
     for idx in range(len(full_dataset)):
-        # load
-        img = io.imread(full_dataset[idx]["image"])
-        img = img / 255
-        img = resize(img, (128, 128), order=1, anti_aliasing=True).astype(np.float32)
-        # remove alpha
-        if img.shape[-1] == 4:
-            img = img[..., :3]
-        np.save(output_path / "images" / f'{full_dataset[idx]["file_name"]}', img)
-
-        mask = io.imread(full_dataset[idx]["segmentation_mask"])
-        mask[mask == 2.0] = 0.0
-        mask[(mask == 1.0) | (mask == 3.0)] = 1.0
-        mask = resize(mask, (128, 128), order=0, preserve_range=True, anti_aliasing=False)
-        np.save(output_path / "masks" / f'{full_dataset[idx]["file_name"]}', mask)
+        np.save(output_path / f"{idx:05d}", full_dataset[idx, ...])
+        file_names.append(f"{idx:05d}.npy")
+    return np.array(file_names)
 
 
-def train_val_test_spitting(full_dataset):
-    all_x = []
-    all_y = []
-    for idx in range(len(full_dataset)):
-        all_x.append(full_dataset[idx]["file_name"])
-        all_y.append(full_dataset[idx]["label"])
-    all_x = np.array(all_x)
-    all_y = np.array(all_y)
-
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=2204, random_state=42)
-    for train_index, test_index in sss.split(all_x, all_y):
-        X_train_val, X_test = all_x[train_index], all_x[test_index]
+def train_val_test_spitting(file_names, all_y):
+    output_path = Path(os.environ.get("PROJECT_DIR")) / "data"
+    # First split of all data into training+validation and testing
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=10000, random_state=42)
+    for train_index, test_index in sss.split(file_names, all_y):
+        X_train_val, X_test = file_names[train_index], file_names[test_index]
         y_train_val, y_test = all_y[train_index], all_y[test_index]
 
-    path = Path(os.environ.get("PROJECT_DIR")) / "data"
-    with open(path / "OxfordPet_test_data.txt", "a") as f:
-        for name, y in zip(X_test, y_test):
-            f.write(f"{name}.npy, {y}\n")
+    with open(output_path / "MNIST_test_data.txt", "w") as f:
+        for file_name, y in zip(X_test, y_test):
+            f.write(f"{file_name}, {y}\n")
 
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=514, random_state=42)
+    # Second split of "training+validation" into training and validation
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=5000, random_state=42)
     for train_index, test_index in sss.split(X_train_val, y_train_val):
-        X_train, X_val = all_x[train_index], all_x[test_index]
-        y_train, y_val = all_y[train_index], all_y[test_index]
+        X_train, X_val = X_train_val[train_index], X_train_val[test_index]
+        y_train, y_val = y_train_val[train_index], y_train_val[test_index]
 
-    with open(path / "OxfordPet_training_data.txt", "a") as f:
-        for name, y in zip(X_train, y_train):
-            f.write(f"{name}.npy, {y}\n")
+    with open(output_path / "MNIST_training_data.txt", "w") as f:
+        for file_name, y in zip(X_train, y_train):
+            f.write(f"{file_name}, {y}\n")
 
-    with open(path / "OxfordPet_validation_data.txt", "a") as f:
-        for name, y in zip(X_val, y_val):
-            f.write(f"{name}.npy, {y}\n")
+    with open(output_path / "MNIST_validation_data.txt", "w") as f:
+        for file_name, y in zip(X_val, y_val):
+            f.write(f"{file_name}, {y}\n")
 
 
 if __name__ == "__main__":
-    root_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "raw" / "oxford-pet"
-    log.info(f"Creating folder for download: {root_path}")
+    root_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "raw" / "mnist"
+
+    print(f"Creating folder for download: {root_path}")
     os.makedirs(root_path, exist_ok=True)
+    file_name = "mnist.npz"
+    origin_folder = "https://storage.googleapis.com/tensorflow/tf-keras-datasets/"
+    path_download = get_file(
+        fname=file_name,
+        cache_dir=Path(os.environ.get("PROJECT_DIR")) / "data" / "raw",
+        cache_subdir="mnist",
+        origin=origin_folder + file_name,
+        file_hash=
+        '731c5ac602752760c8e48fbffcf8c3b850d9dc2a2aedcf2cc48468fc17b673d1',
+    )
 
-    download_and_extract_data(root_path, "images.tar.gz")
-    download_and_extract_data(root_path, "annotations.tar.gz")
+    print(f"Load data and pre-process it.")
+    all_x, all_y = load_annotation_data(path_download)
+    #file_names = pre_process_data(all_x)
+    file_names = []
+    for idx in range(len(all_x)):
+        file_names.append(f"{idx:05d}.npy")
+    file_names = np.array(file_names)
 
-    full_dataset = load_annotation_data(root_path)
-    pre_process_data(full_dataset)
-    train_val_test_spitting(full_dataset)
+    print(f"Creating training, validation, and test split.")
+    train_val_test_spitting(file_names, all_y)
