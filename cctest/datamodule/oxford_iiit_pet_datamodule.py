@@ -164,9 +164,7 @@ class OxfordPetDataset(TfDataloader):
         self._data_training_list = train_list
         self._data_val_list = val_list
         self._data_test_list = test_list
-        if num_gpus == 0:
-            num_gpus = 1
-        self._global_batch_size = batch_size * num_gpus
+        self._global_batch_size = batch_size * num_gpus if num_gpus > 0 else batch_size
         self._n_classes = 2
         self._img_shape = (128, 128, 3)
 
@@ -177,6 +175,10 @@ class OxfordPetDataset(TfDataloader):
         img_val_paths, mask_val_paths = self.load_data(self._data_val_list)
         self._img_val_paths = img_val_paths
         self._mask_val_paths = mask_val_paths
+
+        self._val_data_size = len(self._img_val_paths)
+        self._train_data_size = len(self._img_train_paths)
+        self.steps_per_epoch = self._train_data_size // self._global_batch_size
 
         aug_comp_training: list[BasicTransform] = []
         aug_comp_validation: list[BasicTransform] = []
@@ -196,9 +198,6 @@ class OxfordPetDataset(TfDataloader):
 
         self.set_aug_train(aug_comp_training)
         self.set_aug_val(aug_comp_validation)
-        self._val_data_size = len(self._img_val_paths)
-        self._train_data_size = len(self._img_train_paths)
-        self.steps_per_epoch = self._train_data_size // self._global_batch_size
 
     def load_data(self, data_list: str, do_shuffle: bool = True) -> tuple[np.array, np.array]:
         """load_data.
