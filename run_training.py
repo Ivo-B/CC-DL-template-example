@@ -5,6 +5,11 @@ import dotenv
 import hydra
 from omegaconf import DictConfig
 
+from tensorflow.python import logging as tf_logging
+
+# prevents double logging print from tf
+tf_logging.get_logger().propagate = False
+
 # load environment variables from `.env` file if it exists
 # recursively searches for `.env` in all folders starting from work dir
 dotenv.load_dotenv(override=True)
@@ -14,7 +19,7 @@ dotenv.load_dotenv(override=True)
 def main(config: DictConfig):
     # Imports should be nested inside @hydra.main to optimize tab completion
     # Read more here: https://github.com/facebookresearch/hydra/issues/934
-    from cctest.executor.train_model import train  # noqa: WPS433
+    from cctest.executor.training import train  # noqa: WPS433
     from cctest.utils import utils  # noqa: WPS433
 
     # A couple of optional utilities:

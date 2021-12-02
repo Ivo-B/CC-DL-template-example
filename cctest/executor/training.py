@@ -10,7 +10,7 @@ from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
 
 from ..datamodule.base_datamodule import TfDataloader
-from ..models.base_trainer_module import TrainingModule
+from ..models.base_model_trainer import TrainingModule
 from ..utils import utils
 from ..utils import my_callback
 

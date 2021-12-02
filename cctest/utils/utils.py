@@ -11,10 +11,11 @@ import rich.table
 import rich.tree
 import tensorflow as tf
 import wandb
+from typing import Union
 from omegaconf import DictConfig, OmegaConf
 
 
-def set_all_seeds(seed_value: str = "0xCAFFEE") -> None:
+def set_all_seeds(seed_value: Union[str, int] = "0xCAFFEE") -> None:
     # Set a seed value
     if isinstance(seed_value, int):
         seed_value = seed_value
@@ -46,8 +47,6 @@ def get_logger(name=__name__) -> logging.Logger:
 def extras(config: DictConfig) -> None:
     """A couple of optional utilities, controlled by main config file:
     - disabling warnings
-    - forcing debug friendly configuration
-    - verifying experiment name is set when running in experiment mode
     Modifies DictConfig in place.
     Args:
         config (DictConfig): Configuration composed by Hydra.
@@ -59,26 +58,6 @@ def extras(config: DictConfig) -> None:
     if config.get("ignore_warnings"):
         log.info("Disabling python warnings! <config.ignore_warnings=True>")
         warnings.filterwarnings("ignore")
-
-    # verify experiment name is set when running in experiment mode
-    if config.get("experiment_mode") and not config.get("name"):
-        log.info(
-            "Running in experiment mode without the experiment name specified! "
-            "Use `python run.py mode=exp name=experiment_name`",
-        )
-        log.info("Exiting...")
-        exit()
-
-    # force debugger friendly configuration if <config.trainer.fast_dev_run=True>
-    # debuggers don't like GPUs and multiprocessing
-    if config.trainer.get("fast_dev_run"):
-        log.info("Forcing debugger friendly configuration! <config.trainer.fast_dev_run=True>")
-        if config.trainer.get("gpus"):
-            config.trainer.gpus = 0
-        if config.datamodule.get("pin_memory"):
-            config.datamodule.pin_memory = False
-        if config.datamodule.get("num_workers"):
-            config.datamodule.num_workers = 0
 
 
 def print_config(
@@ -129,7 +108,7 @@ def print_config(
 def print_history(
     history: dict,
 ) -> None:
-    """Prints content of history using Rich library and its table structure.
+    """Prints content of training history using Rich library and its table structure.
     Args:
         history (dict): Results from keras fit.
     """
