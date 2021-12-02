@@ -38,6 +38,10 @@ conda activate cctest_py39
 poetry install
 # activate pre-commit
 pre-commit install
+# activate git
+git init
+# activate DvC
+dvc init
 ````
 
 If you use PyEnv ot provide Python, your Virtualenvironment will be installed into the project´folder `.venv`
@@ -167,7 +171,7 @@ model = hydra.utils.instantiate(config.model)
 
 This allows you to easily iterate over new models!<br>
 Every time you create a new one, just specify its module path and parameters in appriopriate config file. <br>
-The whole pipeline managing the instantiation logic is placed in [cctest/executor/train_model.py](cctest/executor/train_model.py).
+The whole pipeline managing the instantiation logic is placed in [cctest/executor/train_model.py](cctest/executor/training.py).
 
 <br>
 
