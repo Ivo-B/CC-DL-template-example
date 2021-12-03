@@ -3,7 +3,7 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - trainer: default.yaml
+  - trainer: default_seg.yaml
   - model: oxfordpet_model_unet.yaml
   - datamodule: oxfordpet_datamodule.yaml
   - callbacks: default.yaml
@@ -15,13 +15,13 @@ defaults:
   - experiment: null
   - hparams_search: null
 
-  - override trainer/loss: bce_dice.yaml
-  - override trainer/metric: many_matrices.yaml
+  - override trainer: default_seg.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog
 
+current_time: ${now:%Y-%m-%d}_${now:%H-%M-%S}
 
 # path to original working directory
 # hydra hijacks working directory by changing it to the current log directory,

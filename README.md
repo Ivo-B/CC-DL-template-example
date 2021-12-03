@@ -38,6 +38,10 @@ conda activate cctest_py39
 poetry install
 # activate pre-commit
 pre-commit install
+# activate git
+git init
+# activate DvC
+dvc init
 ````
 
 If you use PyEnv ot provide Python, your Virtualenvironment will be installed into the project´folder `.venv`
@@ -53,8 +57,8 @@ pre-commit install
 Template contains examples with MNIST classification and Oxfordpet Segmentation.<br>
  1. edit [.env.example](.env.example) and set your PROJECT_PATH, rename file to `.env`
  2. To download and prepare data, use `make data_mnist` or `make data_oxford`
- 3. To run the classification example, use `python run_training.py`.
- 4. To run the segmentation example, use `python run_training.py --config-name config_seg`.
+ 3. To run the classification example, use `python run_training.py mode=exp name=exp_test`.
+ 4. To run the segmentation example, use `python run_training.py --config-name config_seg mode=exp name=exp_test`.
 
 
 ## Project Organization
@@ -167,7 +171,7 @@ model = hydra.utils.instantiate(config.model)
 
 This allows you to easily iterate over new models!<br>
 Every time you create a new one, just specify its module path and parameters in appriopriate config file. <br>
-The whole pipeline managing the instantiation logic is placed in [cctest/executor/train_model.py](cctest/executor/train_model.py).
+The whole pipeline managing the instantiation logic is placed in [cctest/executor/train_model.py](cctest/executor/training.py).
 
 <br>
 
@@ -362,7 +366,7 @@ logger:
 1. Write your model (see [simple_conv_net.py](cctest/models/modules/simple_conv_net.py) for example)
 2. Write your datamodule (see [mnist_datamodule.py](cctest/datamodules/mnist_datamodule.py) for example)
 3. Write your experiment config, containing paths to your model and datamodule
-4. Run training with chosen experiment config: `python run.py experiment=experiment_name`
+4. Run training with chosen experiment config: `python run_training.py mode=exp experiment=experiment_name`
    <br>
 
 ### Logs
@@ -373,31 +377,31 @@ By default, logs have the following structure:
 ```
 │
 ├── logs
-│   ├── runs                    # Folder for logs generated from single runs
-│   │   ├── 2021-02-15              # Date of executing run
-│   │   │   ├── 16-50-49                # Hour of executing run
-│   │   │   │   ├── .hydra                  # Hydra logs
-│   │   │   │   ├── wandb                   # Weights&Biases logs
+│   ├── experiments                         # Folder for logs generated from single runs
+│   │   ├── exp_test                        # Name of your experiment
+│   │   │   ├── 2021-02-15_16-50-49         # Date and Hour of executing run
+│   │   │   │   ├── hydra_training              # Hydra logs
 │   │   │   │   ├── checkpoints             # Training checkpoints
 │   │   │   │   └── ...                     # Any other thing saved during training
 │   │   │   ├── ...
 │   │   │   └── ...
 │   │   ├── ...
-│   │   └── ...
-│   │
-│   └── multiruns               # Folder for logs generated from multiruns (sweeps)
-│       ├── 2021-02-15_16-50-49     # Date and hour of executing sweep
-│       │   ├── 0                       # Job number
-│       │   │   ├── .hydra                  # Hydra logs
-│       │   │   ├── wandb                   # Weights&Biases logs
-│       │   │   ├── checkpoints             # Training checkpoints
-│       │   │   └── ...                     # Any other thing saved during training
-│       │   ├── 1
-│       │   ├── 2
-│       │   └── ...
-│       ├── ...
-│       └── ...
-│
+│   │   └── multiruns                       # Folder for logs generated from multiruns (sweeps)
+│   │           ├── exp_test                    # Name of your experiment
+│   │           │   ├── 2021-02-15_16-50-49         # Date and Hour of executing run
+│   │           │   │   ├── 0                       # Job number
+│   │           │   │   │   ├── hydra_training          # Hydra logs
+│   │           │   │   │   ├── checkpoints             # Training checkpoints
+│   │           │   │   │   └── ...                     # Any other thing saved during training
+│   │           │   │   ├── 1
+│   │           │   │   ├── 2
+│   │           │   │   └── ...
+│   │           │   ├── ...
+│   │           │   └── ...
+│   │           ├── ...
+│   │           └── ...
+│   ├── debug                         # Folder for logs generated from debug runs
+
 ```
 
 

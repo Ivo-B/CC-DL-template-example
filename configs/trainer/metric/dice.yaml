@@ -1,7 +1,7 @@
 dice:
   _target_: cctest.utils.my_metrics.MeanSegMetric
 
-  jaccard: false
-  include_background: false
-  from_logits: false
+  jaccard: False
+  include_background: False
+  from_logits: False
   num_classes: ${model.num_classes}

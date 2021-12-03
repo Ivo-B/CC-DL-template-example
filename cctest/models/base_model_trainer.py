@@ -1,7 +1,4 @@
-import platform
-
 import hydra
-import keras.metrics
 import tensorflow as tf
 from omegaconf import DictConfig
 
@@ -15,15 +12,17 @@ class TrainingModule:
         self,
         gpus: int,
         epochs: int,
+        validation_freq: int,
         optimizer: DictConfig,
         lr_scheduler: DictConfig,
         loss: DictConfig,
         metric: DictConfig,
         model: DictConfig,
-        callbacks: list[tf.keras.callbacks.Callback]
+        callbacks: list[tf.keras.callbacks.Callback],
     ):
         self.gpus = gpus
         self.epochs = epochs
+        self.validation_freq = validation_freq
 
         self.callbacks = list(callbacks)
         self.metric_config = metric
@@ -35,7 +34,7 @@ class TrainingModule:
 
     def build(self):
         if tf.config.list_logical_devices("GPU"):
-            strategy = tf.distribute.MultiWorkerMirroredStrategy()
+            strategy = tf.distribute.MirroredStrategy()
         else:  # Use the Default Strategy
             strategy = tf.distribute.get_strategy()
         log.info("Number of devices: {}".format(strategy.num_replicas_in_sync))
@@ -62,12 +61,19 @@ class TrainingModule:
 
         self.model.compile(optimizer=optimizer_fn, loss=loss_fn, metrics=metric_fn)
 
-    def fit(self, training_dataset: tf.data.Dataset, steps_per_epoch: int, validation_dataset: tf.data.Dataset = None, verbose: int = 2):
+    def fit(
+        self,
+        training_dataset: tf.data.Dataset,
+        steps_per_epoch: int,
+        validation_dataset: tf.data.Dataset = None,
+        verbose: int = 2,
+    ):
         return self.model.fit(
             training_dataset,
             epochs=self.epochs,
             steps_per_epoch=steps_per_epoch,
             validation_data=validation_dataset,
+            validation_freq=self.validation_freq,
             callbacks=self.callbacks,
             verbose=verbose,
             workers=1,

@@ -14,8 +14,16 @@ log = utils.get_logger(__name__)
 class ImageLogger(Callback):
     def __init__(self, log_dir, epoch_freq, num_images, sample_batch, phase):
         super().__init__()
-        self.file_writer_image = tf.summary.create_file_writer(log_dir + f'/images_{phase}')
+        self.file_writer_image = tf.summary.create_file_writer(log_dir + f"/images_{phase}")
+        # note model(test_data) does not work well with model.fit()
         self.test_images, self.test_masks = sample_batch
+        self.test_images = self.test_images.numpy()
+        self.test_masks = self.test_masks.numpy()
+
+        self.test_images_ds = tf.data.Dataset.from_tensors(self.test_images).cache()
+        options = tf.data.Options()
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+        self.test_images_ds = self.test_images_ds.with_options(options)
 
         self.epoch_freq = epoch_freq
         self.num_images = num_images
@@ -55,18 +63,17 @@ class ImageLogger(Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         if (epoch % self.epoch_freq) == 0:
-            # Use the model to predict the values from the validation dataset.
-            test_pred_raw = self.model(self.test_images, training=False).numpy()
+            test_pred_raw = self.model.predict(self.test_images_ds)
+
             if self.num_images > test_pred_raw.shape[0]:
                 self.num_images = test_pred_raw.shape[0]
 
             for i in range(self.num_images):
-                test_image = self.test_images[i].numpy().copy()
+                test_image = self.test_images[i].copy()
                 # norm to 0,1
                 test_image = (test_image - np.min(test_image)) * (1.0 / (np.max(test_image) - np.min(test_image)))
 
-
-                test_mask = np.argmax(self.test_masks[i].numpy().copy(), axis=-1)
+                test_mask = np.argmax(self.test_masks[i], axis=-1)
                 test_pred = np.argmax(test_pred_raw[i], axis=-1)
                 test_pred_raw_out = test_pred_raw[i][..., 1]
 

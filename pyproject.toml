@@ -8,7 +8,7 @@ style = "https://raw.githubusercontent.com/wemake-services/wemake-python-stylegu
 
 
 [tool.poetry]
-name = "CC-test"
+name = "cctest"
 description = "Das ist ein Test"
 version = "0.1.4"
 readme = "README.md"
@@ -33,8 +33,10 @@ hydra-optuna-sweeper = "^1.1.1"
 rich = "^10.12.0"
 wandb = "^0.12.7"
 flatdict = "^4.0.1"
-seaborn-image = "^0.4.4"
 seaborn = "^0.11.2"
+ray = {extras = ["default", "tune"], version = "^1.8.0"}
+natsort = "^8.0.0"
+seaborn-image = "^0.4.4"
 # hydra-ray-launcher, add later whenn version is bumped
 
 
@@ -51,6 +53,8 @@ pytest-randomly = "^3.8"
 pytest-deadfixtures = "^2.2"
 pytest-testmon = "^1.1"
 pytest-timeout = "^1.4"
+pytest-clarity = "^1.0.1"
+pytest-sugar = "^0.9.4"
 hypothesis = "^6.14"
 
 mypy = "^0.910"
@@ -66,5 +70,8 @@ dotenv-linter = "^0.2"
 dump-env = "^1.3"
 ipython = "^7.25"
 jupyter = "^1.0.0"
+icecream = "^2.1.1"
+hydra-colorlog = "^1.1.0"
 
 pre-commit = "^2.15.0"
+dvc = {extras = ["ssh"], version = "^2.8.3"}

@@ -1,7 +1,7 @@
 _target_: tensorflow.keras.optimizers.Adam
 
-learning_rate: 0.0003
+learning_rate: 0.3
 beta_1: 0.9
 beta_2: 0.999
 epsilon: 1e-07
-amsgrad: 'false'
+amsgrad: False

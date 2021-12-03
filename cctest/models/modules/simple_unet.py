@@ -30,13 +30,13 @@ class SimpleUNet(keras.Model):
         for idx in range(num_down_blocks):
             start_filters //= 2  # decreasing number of filters with each layer
             self.up_layers += [
-                keras.layers.Conv2DTranspose(start_filters, (2, 2), strides=(2, 2), padding="same", name=f"up{idx}_CT")
+                keras.layers.Conv2DTranspose(start_filters, (2, 2), strides=(2, 2), padding="same", name=f"up{idx}_CT"),
             ]
             self.up_layers += [keras.layers.Concatenate(name=f"up{idx}_Concat")]
             self.up_layers += SimpleUNet.conv2d_block(start_filters, kernel_size, name=f"up{idx}_CB")
 
         self.conv1 = keras.layers.Conv2D(num_classes, (1, 1), name="conv_logits")
-        self.out_act = keras.layers.Activation('softmax', dtype='float32', name='act_predictions')
+        self.out_act = keras.layers.Activation("softmax", dtype="float32", name="act_predictions")
 
         # adding batch dim with None
         self.build((None,) + self.input_shape_)
@@ -46,7 +46,7 @@ class SimpleUNet(keras.Model):
         out_list = []
         for i in range(2):
             out_list.append(
-                keras.layers.Conv2D(filters, kernel_size, padding="same", use_bias="none", name=f"{name}_{i}_conv")
+                keras.layers.Conv2D(filters, kernel_size, padding="same", use_bias="none", name=f"{name}_{i}_conv"),
             )
             # out_list.append(keras.layers.experimental.SyncBatchNormalization(name=f"{name}_{i}_syncBN"))
             out_list.append(keras.layers.BatchNormalization(name=f"{name}_{i}_BN"))

@@ -16,11 +16,11 @@ PYTHON_INTERPRETER = python
 
 ## Make Oxfordpet Dataset
 data_oxford:
-	$(PYTHON_INTERPRETER) -m $(MODULE_NAME).data.make_oxford_pet
+	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxford_pet.py
 
 ## Make MNIST Dataset
 data_mnist:
-	$(PYTHON_INTERPRETER) -m $(MODULE_NAME).data.make_mnist
+	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_mnist.py
 
 ## Delete all compiled Python files
 clean:
@@ -35,9 +35,10 @@ lint:
 create_environment:
 ifeq (1, $(use_conda))
 	@echo ">>> Using conda, creating conda environment."
-
 	conda create --name $(PROJECT_NAME)_$(PYTHON_VERSION | sed 's/\.//') python=$(PYTHON_VERSION)
-	@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
+	conda activate $(PROJECT_NAME)_$(PYTHON_VERSION | sed 's/\.//')
+	poetry install
+	@echo ">>> New conda env created and all is set to go."
 else
 	@echo ">>> Using natvi poetry."
 
