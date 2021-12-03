@@ -34,6 +34,8 @@ rich = "^10.12.0"
 wandb = "^0.12.7"
 flatdict = "^4.0.1"
 seaborn = "^0.11.2"
+ray = {extras = ["default", "tune"], version = "^1.8.0"}
+natsort = "^8.0.0"
 seaborn-image = "^0.4.4"
 # hydra-ray-launcher, add later whenn version is bumped
 
@@ -72,3 +74,4 @@ icecream = "^2.1.1"
 hydra-colorlog = "^1.1.0"
 
 pre-commit = "^2.15.0"
+dvc = {extras = ["ssh"], version = "^2.8.3"}

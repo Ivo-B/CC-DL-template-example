@@ -4,7 +4,6 @@ import warnings
 import dotenv
 import hydra
 from omegaconf import DictConfig
-
 from tensorflow.python import logging as tf_logging
 
 # prevents double logging print from tf

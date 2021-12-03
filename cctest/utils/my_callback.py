@@ -14,7 +14,7 @@ log = utils.get_logger(__name__)
 class ImageLogger(Callback):
     def __init__(self, log_dir, epoch_freq, num_images, sample_batch, phase):
         super().__init__()
-        self.file_writer_image = tf.summary.create_file_writer(log_dir + f'/images_{phase}')
+        self.file_writer_image = tf.summary.create_file_writer(log_dir + f"/images_{phase}")
         # note model(test_data) does not work well with model.fit()
         self.test_images, self.test_masks = sample_batch
         self.test_images = self.test_images.numpy()
@@ -72,7 +72,6 @@ class ImageLogger(Callback):
                 test_image = self.test_images[i].copy()
                 # norm to 0,1
                 test_image = (test_image - np.min(test_image)) * (1.0 / (np.max(test_image) - np.min(test_image)))
-
 
                 test_mask = np.argmax(self.test_masks[i], axis=-1)
                 test_pred = np.argmax(test_pred_raw[i], axis=-1)

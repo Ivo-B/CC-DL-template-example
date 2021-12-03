@@ -2,8 +2,10 @@ import os
 from pathlib import Path
 
 import numpy as np
+import ray
 from dotenv import find_dotenv, load_dotenv
 from keras.utils.data_utils import get_file
+from natsort import natsorted
 from sklearn.model_selection import StratifiedShuffleSplit
 
 # find .env automagically by walking up directories until it's found, then
@@ -13,25 +15,38 @@ load_dotenv(find_dotenv())
 
 def load_annotation_data(root_path):
     with np.load(root_path, allow_pickle=True) as f:  # pylint: disable=unexpected-keyword-arg
-        x_train, y_train = f['x_train'], f['y_train']
-        x_test, y_test = f['x_test'], f['y_test']
+        x_train, y_train = f["x_train"], f["y_train"]
+        x_test, y_test = f["x_test"], f["y_test"]
 
     all_x = np.concatenate((x_train, x_test))
     all_y = np.concatenate((y_train, y_test))
     return all_x, all_y
 
 
-def pre_process_data(full_dataset):
+@ray.remote
+def ray_preprocessing(full_dataset, block_idxs, output_path):
+    # Do some image processing.
+    out_results = []
+    for idx in block_idxs:
+        img = full_dataset[idx, ...] / 255.0
+        np.save(output_path / f"{idx:05d}", img)
+        out_results.append(f"{idx:05d}.npy")
+    return out_results
+
+
+def pre_process_data(full_dataset, num_cpus):
     output_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "processed" / "mnist"
     os.makedirs(output_path, exist_ok=True)
 
-    # norm to 1
-    full_dataset = full_dataset / 255
+    full_dataset_id = ray.put(full_dataset)
+    block_idxs = np.array_split(np.arange(len(full_dataset)), num_cpus)
+    result_ids = [ray_preprocessing.remote(full_dataset_id, block_idxs[x], output_path) for x in range(num_cpus)]
 
     file_names = []
-    for idx in range(len(full_dataset)):
-        np.save(output_path / f"{idx:05d}", full_dataset[idx, ...])
-        file_names.append(f"{idx:05d}.npy")
+    while len(result_ids):
+        done_id, result_ids = ray.wait(result_ids)
+        file_names += ray.get(done_id[0])
+    file_names = natsorted(file_names)
     return np.array(file_names)
 
 
@@ -64,6 +79,7 @@ def train_val_test_spitting(file_names, all_y):
 
 if __name__ == "__main__":
     root_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "raw" / "mnist"
+    ray.init()
 
     print(f"Creating folder for download: {root_path}")
     os.makedirs(root_path, exist_ok=True)
@@ -74,17 +90,13 @@ if __name__ == "__main__":
         cache_dir=Path(os.environ.get("PROJECT_DIR")) / "data" / "raw",
         cache_subdir="mnist",
         origin=origin_folder + file_name,
-        file_hash=
-        '731c5ac602752760c8e48fbffcf8c3b850d9dc2a2aedcf2cc48468fc17b673d1',
+        file_hash="731c5ac602752760c8e48fbffcf8c3b850d9dc2a2aedcf2cc48468fc17b673d1",
     )
 
     print(f"Load data and pre-process it.")
     all_x, all_y = load_annotation_data(path_download)
-    #file_names = pre_process_data(all_x)
-    file_names = []
-    for idx in range(len(all_x)):
-        file_names.append(f"{idx:05d}.npy")
-    file_names = np.array(file_names)
+    file_names = pre_process_data(all_x, os.cpu_count())
 
     print(f"Creating training, validation, and test split.")
     train_val_test_spitting(file_names, all_y)
+    ray.shutdown()

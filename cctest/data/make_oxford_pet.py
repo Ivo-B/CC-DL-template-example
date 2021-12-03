@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import ray
 from dotenv import find_dotenv, load_dotenv
 from keras.utils.data_utils import get_file
 from skimage import io
@@ -49,13 +50,10 @@ def load_annotation_data(root_path):
     return all_data
 
 
-def pre_process_data(full_dataset):
-    output_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "processed" / "oxford-pet"
-    os.makedirs(output_path, exist_ok=True)
-    os.makedirs(output_path / "images", exist_ok=True)
-    os.makedirs(output_path / "masks", exist_ok=True)
-
-    for idx in range(len(full_dataset)):
+@ray.remote
+def ray_preprocessing(full_dataset, block_idxs, output_path):
+    # Do some image processing.
+    for idx in block_idxs:
         # load
         img = io.imread(full_dataset[idx]["image"])
         img = img / 255
@@ -70,6 +68,23 @@ def pre_process_data(full_dataset):
         mask[(mask == 1.0) | (mask == 3.0)] = 1.0
         mask = resize(mask, (128, 128), order=0, preserve_range=True, anti_aliasing=False)
         np.save(output_path / "masks" / f'{full_dataset[idx]["file_name"]}', mask)
+    return 1
+
+
+def pre_process_data(full_dataset, num_cpus):
+    output_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "processed" / "oxford-pet"
+    os.makedirs(output_path, exist_ok=True)
+    os.makedirs(output_path / "images", exist_ok=True)
+    os.makedirs(output_path / "masks", exist_ok=True)
+
+    full_dataset_id = ray.put(full_dataset)
+    block_idxs = np.array_split(np.arange(len(full_dataset)), num_cpus)
+    result_ids = [ray_preprocessing.remote(full_dataset_id, block_idxs[x], output_path) for x in range(num_cpus)]
+
+    count_finished = 0
+    while len(result_ids):
+        done_id, result_ids = ray.wait(result_ids)
+        count_finished += ray.get(done_id[0])
 
 
 def train_val_test_spitting(full_dataset):
@@ -109,6 +124,7 @@ def train_val_test_spitting(full_dataset):
 
 if __name__ == "__main__":
     root_path = Path(os.environ.get("PROJECT_DIR")) / "data" / "raw" / "oxford-pet"
+    ray.init()
 
     print(f"Creating folder for download: {root_path}")
     os.makedirs(root_path, exist_ok=True)
@@ -117,7 +133,8 @@ if __name__ == "__main__":
 
     print(f"Load data and pre-process it.")
     full_dataset = load_annotation_data(root_path)
-    pre_process_data(full_dataset)
+    pre_process_data(full_dataset, os.cpu_count())
 
     print(f"Creating training, validation, and test split.")
     train_val_test_spitting(full_dataset)
+    ray.shutdown()
