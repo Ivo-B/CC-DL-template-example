@@ -9,6 +9,6 @@ wandb:
   _target_: wandb.keras.WandbCallback
   monitor: val_loss
   mode: min
-  save_model: false
-  save_graph: true
-  log_weights: true
+  save_model: False
+  save_graph: True
+  log_weights: True

@@ -1,7 +1,5 @@
 import warnings
-from typing import Callable, Optional
 
-import keras.losses
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
@@ -94,7 +92,7 @@ class SegLoss(Loss):
                 y_pred = y_pred[..., 1:]
 
         # reducing only spatial dimensions (not batch nor channels)
-        reduce_axis: list[int] = list(np.arange(1, len(y_pred.shape) - 1))
+        reduce_axis = list(np.arange(1, len(y_pred.shape) - 1))
         intersection = K.sum(y_true * y_pred, axis=reduce_axis)
 
         if self.squared_pred:
@@ -109,16 +107,14 @@ class SegLoss(Loss):
         if self.jaccard:
             denominator = 2.0 * (denominator - intersection)
 
-        f: tf.Tensor = (2.0 * intersection + self.smooth_nr) / (denominator + self.smooth_dr + 1e-8)
+        loss_pro_class = (2.0 * intersection + self.smooth_nr) / (denominator + self.smooth_dr + 1e-8)
         if self.log_dice:
-            f = -K.log(f)
+            loss_pro_class = -K.log(loss_pro_class)
         else:
-            f: tf.Tensor = 1.0 - f
-
-        tf.debugging.check_numerics(f, "test 123")
+            loss_pro_class = 1.0 - loss_pro_class
 
         # reducing only channel dimensions (not batch)
-        return K.mean(f, axis=-1)
+        return K.mean(loss_pro_class, axis=-1)
 
     def call(
         self,
@@ -141,6 +137,7 @@ class SegLoss(Loss):
 
 class CESegLoss(SegLoss):
     """"""
+
     def __init__(
         self,
         from_logits: bool = True,
@@ -191,7 +188,7 @@ class CESegLoss(SegLoss):
         mean_axes = [i for i in range(1, len(f_loss.shape))]
         f_loss = K.mean(f_loss, axis=mean_axes)
 
-        return self.alpha * self.get_seg_loss(y_true, y_pred) + (1 - self.alpha ) * f_loss
+        return self.alpha * self.get_seg_loss(y_true, y_pred) + (1 - self.alpha) * f_loss
 
 
 class BCESegLoss(SegLoss):
@@ -247,4 +244,4 @@ class BCESegLoss(SegLoss):
         mean_axes = [i for i in range(1, len(f_loss.shape))]
         f_loss = K.mean(f_loss, axis=mean_axes)
 
-        return self.alpha * self.get_seg_loss(y_true, y_pred) +  (1 - self.alpha ) * f_loss
+        return self.alpha * self.get_seg_loss(y_true, y_pred) + (1 - self.alpha) * f_loss

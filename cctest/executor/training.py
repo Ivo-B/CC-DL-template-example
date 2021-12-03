@@ -1,5 +1,3 @@
-import os
-import shutil
 from typing import List, Optional
 
 import hydra
@@ -9,10 +7,9 @@ from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
 
-from ..datamodule.base_datamodule import TfDataloader
-from ..models.base_trainer_module import TrainingModule
-from ..utils import utils
-from ..utils import my_callback
+from cctest.datamodule.base_datamodule import TfDataloader
+from cctest.models.base_model_trainer import TrainingModule
+from cctest.utils import utils
 
 log = utils.get_logger(__name__)
 
@@ -81,16 +78,22 @@ def train(config: DictConfig) -> Optional[float]:
         for lg_key, lg_conf in config.logger.items():
             if "image_logger" in lg_key:
                 log.info(f"Instantiating logger <{lg_conf._target_}>")
-                logger.append(hydra.utils.instantiate(
-                    lg_conf,
-                    sample_batch=next(iter(training_dataset)),
-                    phase="train",
-                    _recursive_=False,))
-                logger.append(hydra.utils.instantiate(
-                    lg_conf,
-                    sample_batch=next(iter(validation_dataset)),
-                    phase="val",
-                    _recursive_=False,))
+                logger.append(
+                    hydra.utils.instantiate(
+                        lg_conf,
+                        sample_batch=next(iter(training_dataset)),
+                        phase="train",
+                        _recursive_=False,
+                    ),
+                )
+                logger.append(
+                    hydra.utils.instantiate(
+                        lg_conf,
+                        sample_batch=next(iter(validation_dataset)),
+                        phase="val",
+                        _recursive_=False,
+                    ),
+                )
                 continue
 
             if "wandb_init" in lg_key:
@@ -137,7 +140,7 @@ def train(config: DictConfig) -> Optional[float]:
     )
 
     if config.get("print_history"):
-        utils.print_history(history.history)
+        utils.print_history(history.history, config.trainer.validation_freq)
 
     # Make sure everything closed properly
     if using_wandb:

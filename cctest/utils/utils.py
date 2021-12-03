@@ -2,7 +2,7 @@ import logging
 import os
 import random
 import warnings
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
 import flatdict
 import numpy as np
@@ -14,7 +14,7 @@ import wandb
 from omegaconf import DictConfig, OmegaConf
 
 
-def set_all_seeds(seed_value: str = "0xCAFFEE") -> None:
+def set_all_seeds(seed_value: Union[str, int] = "0xCAFFEE") -> None:
     # Set a seed value
     if isinstance(seed_value, int):
         seed_value = seed_value
@@ -46,8 +46,6 @@ def get_logger(name=__name__) -> logging.Logger:
 def extras(config: DictConfig) -> None:
     """A couple of optional utilities, controlled by main config file:
     - disabling warnings
-    - forcing debug friendly configuration
-    - verifying experiment name is set when running in experiment mode
     Modifies DictConfig in place.
     Args:
         config (DictConfig): Configuration composed by Hydra.
@@ -63,22 +61,11 @@ def extras(config: DictConfig) -> None:
     # verify experiment name is set when running in experiment mode
     if config.get("experiment_mode") and not config.get("name"):
         log.info(
-            "Running in experiment mode without the experiment name specified! "
-            "Use `python run.py mode=exp name=experiment_name`",
+            "Running in experiment mode without the experiment name specified!\n"
+            "Use `python run_training.py mode=exp name=experiment_name`",
         )
         log.info("Exiting...")
         exit()
-
-    # force debugger friendly configuration if <config.trainer.fast_dev_run=True>
-    # debuggers don't like GPUs and multiprocessing
-    if config.trainer.get("fast_dev_run"):
-        log.info("Forcing debugger friendly configuration! <config.trainer.fast_dev_run=True>")
-        if config.trainer.get("gpus"):
-            config.trainer.gpus = 0
-        if config.datamodule.get("pin_memory"):
-            config.datamodule.pin_memory = False
-        if config.datamodule.get("num_workers"):
-            config.datamodule.num_workers = 0
 
 
 def print_config(
@@ -128,10 +115,12 @@ def print_config(
 
 def print_history(
     history: dict,
+    validation_freq: int,
 ) -> None:
-    """Prints content of history using Rich library and its table structure.
+    """Prints content of training history using Rich library and its table structure.
     Args:
         history (dict): Results from keras fit.
+        validation_freq (int): Results from keras fit.
     """
 
     style = "dim"
@@ -143,7 +132,7 @@ def print_history(
         idx += 1
         table.add_column(field, style=style, justify="right")
         all_rows.append([field])
-        for epoch, entry in enumerate(history[field]):
+        for epoch, entry in enumerate(history[field], start=1):
             all_rows[idx].append(entry)
             if idx == 1:
                 all_rows[0].append(epoch)
@@ -152,12 +141,17 @@ def print_history(
     for num_row in range(1, len(all_rows[0])):
         row = ()
         for num_col in range(len(all_rows)):
-            if all_rows[num_col][0] == "lr":
-                row += ("{:.4e}".format(all_rows[num_col][num_row]),)
-            elif all_rows[num_col][0] == "Epoch":
+            if all_rows[num_col][0] == "Epoch":
                 row += ("{:d}".format(all_rows[num_col][num_row]),)
+            elif all_rows[num_col][0] == "lr":
+                row += ("{:.4e}".format(all_rows[num_col][num_row]),)
             else:
-                row += ("{:.4f}".format(all_rows[num_col][num_row]),)
+                if "val_" in all_rows[num_col][0] and all_rows[0][num_row] % validation_freq != 0:
+                    row += (" ",)
+                elif "val_" in all_rows[num_col][0]:
+                    row += ("{:.4f}".format(all_rows[num_col][num_row // validation_freq]),)
+                else:
+                    row += ("{:.4f}".format(all_rows[num_col][num_row]),)
         table.add_row(*row)
 
     rich.print(table)

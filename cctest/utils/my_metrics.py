@@ -3,12 +3,7 @@ import warnings
 import numpy as np
 from tensorflow.keras import backend as K
 from tensorflow.keras.metrics import Metric
-from tensorflow.python.ops import (
-    array_ops,
-    confusion_matrix,
-    init_ops,
-    math_ops,
-)
+from tensorflow.python.ops import array_ops, confusion_matrix, init_ops, math_ops
 
 
 class MeanSegMetric(Metric):
@@ -26,7 +21,9 @@ class MeanSegMetric(Metric):
 
         # Variable to accumulate the predictions in the confusion matrix.
         self.total_cm = self.add_weight(
-            "total_confusion_matrix", shape=(num_classes, num_classes), initializer=init_ops.zeros_initializer
+            "total_confusion_matrix",
+            shape=(num_classes, num_classes),
+            initializer=init_ops.zeros_initializer,
         )
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -75,7 +72,11 @@ class MeanSegMetric(Metric):
 
         # Accumulate the prediction to current confusion matrix.
         current_cm = confusion_matrix.confusion_matrix(
-            y_true, y_pred, self.num_classes, weights=sample_weight, dtype=self._dtype
+            y_true,
+            y_pred,
+            self.num_classes,
+            weights=sample_weight,
+            dtype=self._dtype,
         )
         return self.total_cm.assign_add(current_cm)
 

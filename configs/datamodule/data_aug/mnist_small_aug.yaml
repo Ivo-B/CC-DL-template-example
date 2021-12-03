@@ -3,12 +3,6 @@ training:
     _target_: albumentations.Flip
     p: 0.2
 
-  random_brightness_contrast:
-    _target_: albumentations.RandomBrightnessContrast
-    p: 0.2
-    brightness_limit: 0.2
-    contrast_limit: 0.2
-
 # will be added to both transformation pipelines (Training and Validation)
 norm_data:
   _target_: albumentations.Normalize

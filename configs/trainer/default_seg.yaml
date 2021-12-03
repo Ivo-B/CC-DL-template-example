@@ -1,6 +1,6 @@
 defaults:
-  - loss: cross_entropy.yaml
-  - metric: accuracy.yaml
+  - loss: bce_dice.yaml
+  - metric: many_matrices.yaml
   - optimizer: adam.yaml
   - lr_scheduler: reduce_lr_on_plateau.yaml
 
@@ -10,6 +10,8 @@ _target_: cctest.models.base_model_trainer.TrainingModule
 # '>0' to train on specific num of GPUs in a node,
 # `0` to train on CPU only,
 gpus: -1
+epochs: 50
+validation_freq: 5
 
-epochs: 10
-validation_freq: 1
+optimizer:
+  learning_rate: 0.003
