@@ -8,7 +8,7 @@ from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
 
 from cctest.datamodule.base_datamodule import TfDataloader
-from cctest.models.base_model_trainer import TrainingModule
+from cctest.model.base_model_trainer import TrainingModule
 from cctest.utils import utils
 
 log = utils.get_logger(__name__)
@@ -66,7 +66,7 @@ def train(config: DictConfig) -> Optional[float]:
     # Callbacks for model training
     #########################
     callbacks: List[Callback] = []
-    if "callbacks" in config:
+    if "callback" in config:
         for _, cb_conf in config.callbacks.items():
             if "_target_" in cb_conf:
                 log.info(f"Instantiating callback <{cb_conf._target_}>")

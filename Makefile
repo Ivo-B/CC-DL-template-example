@@ -1,14 +1,17 @@
-.PHONY: clean data_mnist data_oxford lint create_environment
+.PHONY: clean data_mnist data_oxford lint environment
 
 #################################################################################
 # GLOBALS                                                                       #
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-PROJECT_NAME = Example_CC_DL_template
-MODULE_NAME = cctest
-PYTHON_VERSION = 3.9
-PYTHON_INTERPRETER = python
+PROJECT_NAME := Example_CC_DL_template
+MODULE_NAME := cctest
+PYTHON_VERSION := 3.9
+PYTHON_INTERPRETER := python
+
+CONDA_ENV_NAME := $(MODULE_NAME)_py$(subst .,,$(PYTHON_VERSION))
+
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -32,19 +35,27 @@ lint:
 	flake8 $(MODULE_NAME)
 
 ## Set up python interpreter environment
-create_environment:
-ifeq (1, $(use_conda))
-	@echo ">>> Using conda, creating conda environment."
-	conda create --name $(PROJECT_NAME)_$(PYTHON_VERSION | sed 's/\.//') python=$(PYTHON_VERSION)
-	conda activate $(PROJECT_NAME)_$(PYTHON_VERSION | sed 's/\.//')
-	poetry install
-	@echo ">>> New conda env created and all is set to go."
+ifeq (,$(shell which conda))
+    HAS_CONDA=False
 else
-	@echo ">>> Using natvi poetry."
-
-	poetry install
-	@echo ">>> New virtualenv created. Activate with:\n.venv/source/Activate"
+    HAS_CONDA=True
+    ENV_DIR=$(shell conda info --base)
+    MY_ENV_DIR=$(ENV_DIR)/envs/$(CONDA_ENV_NAME)
 endif
+
+environment:
+ifeq (True,$(HAS_CONDA))
+ifneq ("$(wildcard $(MY_ENV_DIR))","") # check if the directory is there
+		@echo ">>> Found $(CONDA_ENV_NAME) environment in $(MY_ENV_DIR). Skipping installation..."
+else
+		@echo ">>> Detected conda, but $(CONDA_ENV_NAME) is missing in $(ENV_DIR). Installing ..."
+		conda create -y --name $(CONDA_ENV_NAME) python=$(PYTHON_VERSION)
+endif
+#else
+#		@echo ">>> Install conda first."
+endif
+		@echo ">>> Please run:\n source ./bash/finalize_environment.sh"
+
 
 
 #################################################################################
