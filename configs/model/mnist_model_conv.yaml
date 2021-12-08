@@ -1,4 +1,4 @@
-_target_: cctest.models.modules.simple_conv_net.SimpleConvNet
+_target_: cctest.model.modules.simple_conv_net.SimpleConvNet
 
 input_shape: [28, 28, 1]
 conv1_size: 16

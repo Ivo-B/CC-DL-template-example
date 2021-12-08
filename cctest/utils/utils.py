@@ -74,7 +74,7 @@ def print_config(
         "trainer",
         "model",
         "datamodule",
-        "callbacks",
+        "callback",
         "logger",
         "seed",
         "name",
@@ -181,8 +181,8 @@ def log_hyperparameters(
     hparams["datamodule"] = OmegaConf.to_container(config["datamodule"], resolve=True)
     if "seed" in config:
         hparams["seed"] = config["seed"]
-    if "callbacks" in config:
-        hparams["callbacks"] = OmegaConf.to_container(config["callbacks"], resolve=True)
+    if "callback" in config:
+        hparams["callback"] = OmegaConf.to_container(config["callback"], resolve=True)
 
     # save number of model parameters
     hparams["model"]["params_total"] = trainer.model.count_params()
