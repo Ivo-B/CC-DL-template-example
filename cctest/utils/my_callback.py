@@ -2,7 +2,6 @@ import io
 
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn_image as isns
 import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
 
@@ -46,16 +45,16 @@ class ImageLogger(Callback):
 
     def plot_image_grid(self, test_image, test_mask, test_pred, test_pred_raw_out):
         f, axs = plt.subplots(nrows=2, ncols=2, figsize=(4, 4))
-        isns.imgplot(test_image, ax=axs[0, 0], robust=True, interpolation="nearest", origin="upper")
+        axs[0, 0].imshow(test_image, interpolation="nearest")
         axs[0, 0].set_title("Image")
 
-        isns.imgplot(test_mask, ax=axs[0, 1], cmap="viridis", cbar=True, interpolation="nearest", origin="upper")
+        axs[0, 1].imshow(test_mask, cmap="viridis", interpolation="nearest")
         axs[0, 1].set_title("Mask")
 
-        isns.imgplot(test_pred, ax=axs[1, 0], cmap="viridis", cbar=True, interpolation="nearest", origin="upper")
+        axs[1, 0].imshow(test_pred, cmap="viridis", interpolation="nearest")
         axs[1, 0].set_title("Prediction")
 
-        isns.imgplot(test_pred_raw_out, ax=axs[1, 1], cmap="viridis", cbar=True, interpolation="nearest", origin="upper")
+        axs[1, 1].imshow(test_pred_raw_out, cmap="viridis", interpolation="nearest")
         axs[1, 1].set_title("Probability Class 1")
 
         plt.tight_layout()
