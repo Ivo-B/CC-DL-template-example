@@ -1,0 +1,10 @@
+_target_: cctest.utils.my_losses.CESegLoss
+
+from_logits: False
+alpha: 0.4
+include_background: True
+squared_pred: False
+jaccard: False
+log_dice: False
+smooth_nr: 1.0
+smooth_dr: 1.0

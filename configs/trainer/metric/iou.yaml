@@ -1,0 +1,7 @@
+iou:
+  _target_: cctest.utils.my_metrics.MeanSegMetric
+
+  jaccard: True
+  include_background: False
+  from_logits: False
+  num_classes: ${model.num_classes}

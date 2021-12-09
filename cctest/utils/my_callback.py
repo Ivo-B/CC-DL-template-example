@@ -1,20 +1,21 @@
+import io
+
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
 
-from skimage.color import label2rgb
-import seaborn as sns
-import matplotlib.pyplot as plt
-import seaborn_image as isns
-import io
-import time
+from cctest.utils import utils
+
+log = utils.get_logger(__name__)
 
 
 class ImageLogger(Callback):
-    def __init__(self, file_writer_image, batch_data, epoch_freq=1, num_images=16, testing=False):
+    def __init__(self, log_dir, epoch_freq, num_images, sample_batch, phase):
         super().__init__()
-        self.file_writer_image = file_writer_image
-        self.test_images, self.test_masks = batch_data
+        self.file_writer_image = tf.summary.create_file_writer(log_dir + f"/images_{phase}")
+        # note model(test_data) does not work well with model.fit()
+        self.test_images, self.test_masks = sample_batch
         self.test_images = self.test_images.numpy()
         self.test_masks = self.test_masks.numpy()
 
@@ -25,14 +26,13 @@ class ImageLogger(Callback):
 
         self.epoch_freq = epoch_freq
         self.num_images = num_images
-        self.testing = testing
 
     def plot_to_image(self, figure):
         """Converts the matplotlib plot specified by 'figure' to a PNG image and
-		returns it. The supplied figure is closed and inaccessible after this call."""
+        returns it. The supplied figure is closed and inaccessible after this call."""
         # Save the plot to a PNG in memory.
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format="png")
         # Closing the figure prevents it from being displayed directly inside
         # the notebook.
         plt.close(figure)
@@ -43,41 +43,42 @@ class ImageLogger(Callback):
         image = tf.expand_dims(image, 0)
         return image
 
-    def plot_image_grid(self, test_image, test_mask, test_pred):
-        # colors = sns.color_palette("colorblind", 3)
-        # test_pred_rgb = label2rgb(test_pred, bg_label=0, colors=colors)
-        # test_pred_over = label2rgb(test_pred, image=test_image, alpha=0.5, bg_label=0, colors=colors)
-        # test_mask = label2rgb(test_mask, bg_label=0, colors=colors)
+    def plot_image_grid(self, test_image, test_mask, test_pred, test_pred_raw_out):
+        f, axs = plt.subplots(nrows=2, ncols=2, figsize=(4, 4))
+        axs[0, 0].imshow(test_image, interpolation="nearest")
+        axs[0, 0].set_title("Image")
 
-        f, axs = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
-        isns.imgplot(test_image, ax=axs[0], cmap='gray', cbar=False, interpolation='nearest', origin='upper')
-        isns.imgplot(test_mask, ax=axs[1], cmap='viridis', cbar=False, interpolation='nearest', origin='upper')
-        isns.imgplot(test_pred, ax=axs[2], cmap='viridis', cbar=False, interpolation='nearest', origin='upper')
-        # isns.imgplot(test_pred_over, ax=axs[3], cbar=False, interpolation='nearest')
+        axs[0, 1].imshow(test_mask, cmap="viridis", interpolation="nearest")
+        axs[0, 1].set_title("Mask")
+
+        axs[1, 0].imshow(test_pred, cmap="viridis", interpolation="nearest")
+        axs[1, 0].set_title("Prediction")
+
+        axs[1, 1].imshow(test_pred_raw_out, cmap="viridis", interpolation="nearest")
+        axs[1, 1].set_title("Probability Class 1")
+
         plt.tight_layout()
-        if self.testing:
-            plt.show()
         return f
 
     def on_epoch_end(self, epoch, logs=None):
         if (epoch % self.epoch_freq) == 0:
-            # Use the model to predict the values from the validation dataset.
-            # test_pred_raw = self.model(self.test_images, training=False)
             test_pred_raw = self.model.predict(self.test_images_ds)
-            test_pred_raw = tf.nn.softmax(test_pred_raw, axis=-1)
+
             if self.num_images > test_pred_raw.shape[0]:
                 self.num_images = test_pred_raw.shape[0]
 
             for i in range(self.num_images):
                 test_image = self.test_images[i].copy()
-                test_image += 0.5
-                test_image = np.concatenate((test_image, test_image, test_image), axis=-1)
-                test_mask = np.argmax(self.test_masks[i].copy(), axis=-1)
-                test_pred = np.argmax(test_pred_raw[i], axis=-1)
+                # norm to 0,1
+                test_image = (test_image - np.min(test_image)) * (1.0 / (np.max(test_image) - np.min(test_image)))
 
-                figure = self.plot_image_grid(test_image, test_mask, test_pred)
+                test_mask = np.argmax(self.test_masks[i], axis=-1)
+                test_pred = np.argmax(test_pred_raw[i], axis=-1)
+                test_pred_raw_out = test_pred_raw[i][..., 1]
+
+                figure = self.plot_image_grid(test_image, test_mask, test_pred, test_pred_raw_out)
                 grid_image = self.plot_to_image(figure)
-                # Log the confusion matrix as an image summary.
+                # Log figure as an image summary.
                 with self.file_writer_image.as_default():
                     tf.summary.image(f"Example {i}", grid_image, step=epoch)
 
@@ -91,4 +92,3 @@ class LearningRateLogger(Callback):
         if logs is None or "learning_rate" in logs:
             return
         logs["learning_rate"] = self.model.optimizer.lr
-

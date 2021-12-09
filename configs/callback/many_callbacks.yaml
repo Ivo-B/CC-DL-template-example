@@ -1,0 +1,5 @@
+# train with many callback at once
+
+defaults:
+  - default.yaml
+  # - add other callback

@@ -1,0 +1,11 @@
+training:
+  flip_vertical:
+    _target_: albumentations.Flip
+    p: 0.2
+
+# will be added to both transformation pipelines (Training and Validation)
+norm_data:
+  _target_: albumentations.Normalize
+  mean: 0.1307
+  std: 0.3081
+  max_pixel_value: 1.0

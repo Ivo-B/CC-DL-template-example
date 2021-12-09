@@ -5,13 +5,14 @@
 
 experiment_mode: True
 
-# allows for custom naming of the experiment
+# forces custom naming of the experiment
 name: ???
 
 hydra:
   # sets output paths for all file logs to `logs/experiment/name'
   run:
-    dir: logs/experiments/${name}
+    dir: logs/experiments/${name}/${current_time}
   sweep:
-    dir: logs/experiments/${name}
+    dir: logs/experiments/multirun/${name}/${current_time}
     subdir: ${hydra.job.num}
+  output_subdir: "hydra_training"

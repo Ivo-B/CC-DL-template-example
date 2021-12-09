@@ -1,0 +1,9 @@
+_target_: cctest.utils.my_losses.SegLoss
+
+from_logits: False
+include_background: True
+squared_pred: False
+jaccard: False
+log_dice: False
+smooth_nr: 1.0
+smooth_dr: 1.0

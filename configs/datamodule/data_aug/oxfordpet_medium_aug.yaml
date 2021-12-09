@@ -1,0 +1,21 @@
+training:
+  shift_scale_rotate:
+    _target_: albumentations.ShiftScaleRotate
+    p: 0.2
+
+  flip_horizontal:
+    _target_: albumentations.HorizontalFlip
+    p: 0.2
+
+  random_brightness_contrast:
+    _target_: albumentations.RandomBrightnessContrast
+    p: 0.2
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+
+# will be added to both transformation pipelines (Training and Validation)
+norm_data:
+  _target_: albumentations.Normalize
+  mean: [0.5, 0.5, 0.5]
+  std: [1, 1, 1]
+  max_pixel_value: 1.0
