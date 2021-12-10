@@ -36,7 +36,7 @@ references:
     license: MIT
   - authors:
       - family-names: Zalewski
-        given-names: Łukasz
+        given-names: Lukasz
     title: "Lightning-hydra-template"
     repository-code: "https://github.com/ashleve/lightning-hydra-template"
     type: software
