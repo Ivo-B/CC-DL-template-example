@@ -5,4 +5,3 @@ tensorboard:
   log_dir: "${work_dir}/tensorboard/${name}"
   write_graph: False
   profile_batch: 0
-

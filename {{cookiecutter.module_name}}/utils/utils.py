@@ -172,7 +172,9 @@ def log_hyperparameters(
     # save number of model parameters
     hparams["model"]["params_total"] = trainer.model.count_params()
     hparams["model"]["params_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.trainable_weights])
-    hparams["model"]["params_not_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights])
+    hparams["model"]["params_not_trainable"] = np.sum(
+        [np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights]
+    )
 
     # flatten nested dicts
     hparams = dict(flatdict.FlatDict(hparams, delimiter="/"))

@@ -1,7 +1,6 @@
 import hydra
 import tensorflow as tf
 from omegaconf import DictConfig
-
 from {{cookiecutter.module_name}}.utils import utils
 
 log = utils.get_logger(__name__)

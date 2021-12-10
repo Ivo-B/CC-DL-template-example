@@ -6,7 +6,6 @@ import numpy as np
 import tensorflow as tf
 from albumentations import BasicTransform, Compose
 from omegaconf import DictConfig
-
 from {{cookiecutter.module_name}}.datamodule.base_datamodule import TfDataloader, load_data_pair_fn
 from {{cookiecutter.module_name}}.utils import utils
 

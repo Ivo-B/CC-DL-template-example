@@ -4,8 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from dotenv import find_dotenv, load_dotenv
-
-from {{ cookiecutter.module_name }}.datamodule.oxford_iiit_pet_datamodule import OxfordPetDataset
+from {{cookiecutter.module_name}}.datamodule.oxford_iiit_pet_datamodule import OxfordPetDataset
 
 load_dotenv(find_dotenv())
 

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
-
 from {{cookiecutter.module_name}}.utils import utils
 
 log = utils.get_logger(__name__)

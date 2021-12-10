@@ -6,7 +6,6 @@ import wandb
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
-
 from {{cookiecutter.module_name}}.datamodule.base_datamodule import TfDataloader
 from {{cookiecutter.module_name}}.model.base_model_trainer import TrainingModule
 from {{cookiecutter.module_name}}.utils import utils
