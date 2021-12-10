@@ -5,7 +5,6 @@
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-PROJECT_NAME := Example_CC_DL_template
 MODULE_NAME := cctest
 PYTHON_VERSION := 3.9
 PYTHON_INTERPRETER := python
@@ -19,7 +18,7 @@ CONDA_ENV_NAME := $(MODULE_NAME)_py$(subst .,,$(PYTHON_VERSION))
 
 ## Make Oxfordpet Dataset
 data_oxford:
-	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxford_pet.py
+	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxfordpet.py
 
 ## Make MNIST Dataset
 data_mnist:

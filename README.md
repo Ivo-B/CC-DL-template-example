@@ -1,4 +1,4 @@
-# Our example cookiecutter project
+# Welcome to Cookiecutter Deep Learning Template
 <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.9-3670A0?style=flat-square&logo=python&logoColor=ffdd54"></a>
 <a href="https://www.tensorflow.org/install"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.7-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: hydra" src="https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=flat-square&labelColor=gray"></a>
@@ -14,7 +14,7 @@ We need some project explanation here!
 - poetry
 - python 3.9
 
-You can use your favorite method to provide python 3.9 for poetry. I recommend [https://github.com/pyenv/pyenv#installation](PyEnv), but you can also use [https://docs.conda.io/en/latest/miniconda.html](Conda) etc.
+You can use your favorite method to provide python 3.9 for poetry. We recommend [https://github.com/pyenv/pyenv#installation](PyEnv), but you can also use [https://docs.conda.io/en/latest/miniconda.html](Conda) etc.
 
 Install poetry:
 ````yaml
@@ -23,7 +23,6 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-
 ````
 
 ## How to use
-> this is only for our example without Cookiecutter
 ````yaml
 # clone project
 git clone https://github.com/Ivo-B/Example_CC_DL_template
@@ -34,7 +33,7 @@ If you use conda to provide the correct Python version, installation and usabili
 ````yaml
 # creates a conda environment
 make environment
-# run to activate env, install packages, init git, init dvc, install pre-commit
+# run to activate env, install packages
 source ./bash/finalize_environment.sh
 ````
 
@@ -43,9 +42,6 @@ When you use PyEnv to provide Python, your virtualenvironment is installed in th
 poetry install
 # activate Virtualenv by
 source ./.venv/Scripts/activate
-
-# activate pre-commit
-pre-commit install
 ````
 
 Template contains examples with MNIST classification and Oxfordpet segmentation.<br>
@@ -181,7 +177,7 @@ The whole pipeline managing the instantiation logic is placed in [cctest/executo
 
 Location: [configs/config.yaml](configs/config.yaml)<br>
 Main project config contains default training configuration.<br>
-It determines how config is composed when simply executing command `python run.py`.<br>
+It determines how config is composed when simply executing command `python run_training.py`.<br>
 It also specifies everything that shouldn't be managed by experiment configurations.
 
 <details>
@@ -194,7 +190,7 @@ defaults:
   - model: mnist_model.yaml
   - datamodule: mnist_datamodule.yaml
   - callback: default.yaml # set this to null if you don't want to use callback
-  - logger: null # set logger here or use command line (e.g. `python run.py logger=wandb`)
+  - logger: null # set logger here or use command line (e.g. `python run_training.py logger=wandb`)
 
   - mode: default.yaml
 
@@ -232,13 +228,13 @@ Experiment configurations allow you to overwrite parameters from main project co
 # @package _global_
 
 # to execute this experiment run:
-# python run.py experiment=example_simple.yaml
+# python run_training.py experiment=mnist_example_simple.yaml
 
 defaults:
   - override /trainer: default.yaml
   - override /model: mnist_model_conv.yaml
   - override /datamodule: mnist_datamodule.yaml
-  - override /callbacks: default.yaml
+  - override /callback: default.yaml
   - override /logger: null
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -261,107 +257,6 @@ datamodule:
 ```
 
 </details>
-
-<details>
-<summary><b>Show advanced example</b></summary>
-
-```yaml
-# @package _global_
-
-# to execute this experiment run:
-# python run.py experiment=example_full.yaml
-
-defaults:
-  - override /trainer: null # override trainer to null so it's not loaded from main config defaults...
-  - override /model: null
-  - override /datamodule: null
-  - override /callbacks: null
-  - override /logger: null
-
-# we override default configurations with nulls to prevent them from loading at all
-# instead we define all modules and their paths directly in this config,
-# so everything is stored in one place
-
-seed: "OxCAFFEE"
-
-trainer:
-  loss:
-    _target_: tensorflow.keras.losses.CategoricalCrossentropy
-    from_logits: True
-  metric:
-    _target_: tensorflow.keras.metrics.CategoricalAccuracy
-  optimizer:
-    _target_: tensorflow.keras.callback.ReduceLROnPlateau
-    factor: 0.5
-    patience: 10
-    min_lr: 1e-9
-    verbose: 1
-    monitor: 'val_loss'
-    mode: 'min'
-  lr_scheduler:
-    _target_: tensorflow.keras.optimizers.Adam
-    learning_rate: 0.0003
-    beta_1: 0.9
-    beta_2: 0.999
-    epsilon: 1e-07
-    amsgrad: 'false'
-
-  _target_: cctest.model.base_trainer_module.TrainingModule
-  # set `-1` to train on all GPUs in a node,
-  # '>0' to train on specific num of GPUs in a node,
-  # `0` to train on CPU only
-  gpus: -1
-  epochs: 5
-  # resume_from_checkpoint: ${work_dir}/last.ckpt
-
-model:
-  _target_: cctest.model.modules.simple_conv_net.SimpleConvNet
-  input_shape: [28, 28, 1]
-  conv1_size: 16
-  conv2_size: 32
-  conv3_size: 32
-  conv4_size: 64
-  output_size: 10
-
-datamodule:
-  _target_: cctest.datamodule.mnist_datamodule.MNISTDataset
-  data_dir: ${data_dir} # data_dir is specified in config.yaml
-  data_training_list: 'training_data.txt'
-  data_val_list: 'validation_data.txt'
-  data_test_list: 'test_data.txt'
-  batch_size: 64
-
-callbacks:
-  model_checkpoint:
-    _target_: tensorflow.keras.callback.ModelCheckpoint
-    monitor: 'val_loss' # name of the logged metric which determines when model is improving
-    mode: 'min' # can be 'max' or 'min'
-    save_best_only: True # save best model (determined by above metric)
-    save_freq: 'epoch' # 'epoch' or integer. When using 'epoch', the callback saves the model after each epoch. When using integer, the callback saves the model at end of this many batches.
-    verbose: 0
-    filepath: 'checkpoints/epoch_{epoch:03d}-{val_loss:.2f}.tf'
-    save_format: 'tf'
-  early_stopping:
-    _target_: tensorflow.keras.callback.EarlyStopping
-    monitor: 'val_loss' # name of the logged metric which determines when model is improving
-    mode: 'max' # can be 'max' or 'min'
-    patience: 100 # how many validation epochs of not improving until training stops
-    min_delta: 0 # minimum change in the monitored metric needed to qualify as an improvement
-
-logger:
-  tensorboard:
-    _target_: tensorflow.keras.callback.TensorBoard
-    log_dir: "tensorboard/${name}"
-    write_graph: False
-    profile_batch: 0
-  csv:
-    _target_: tensorflow.keras.callback.CSVLogger
-    filename: "./csv/${name}.csv"
-```
-
-</details>
-
-<br>
 
 ### Workflow
 
@@ -408,6 +303,8 @@ By default, logs have the following structure:
 
 
 ### Based on:
+[cookiecutter-deep-learning-template](https://github.com/Ivo-B/CC-DL-template)
+
 [cookiecutter-data-science](https://github.com/drivendata/cookiecutter-data-science)
 
 [wemake-django-template](https://github.com/wemake-services/wemake-django-template)

@@ -12,4 +12,4 @@ _target_: cctest.model.base_model_trainer.TrainingModule
 gpus: -1
 
 epochs: 10
-validation_freq: 1
+validation_freq: 0.003

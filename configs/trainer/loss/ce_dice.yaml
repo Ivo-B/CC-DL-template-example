@@ -1,4 +1,4 @@
-_target_: cctest.utils.my_losses.CESegLoss
+_target_: cctest.utils.my_loss.CESegLoss
 
 from_logits: False
 alpha: 0.4
