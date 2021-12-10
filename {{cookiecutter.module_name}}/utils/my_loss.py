@@ -7,21 +7,6 @@ from tensorflow.keras.losses import Loss
 
 
 class SegLoss(Loss):
-    """
-    Compute average Dice loss between two tensors. It can support both multi-classes and multi-labels tasks.
-    Input logits `input` (BNHW[D] where N is number of classes) is compared with ground truth `target` (BNHW[D]).
-    Axis N of `input` is expected to have logit predictions for each class rather than being image channels,
-    while the same axis of `target` can be 1 or N (one-hot format). The `smooth_nr` and `smooth_dr` parameters are
-    values added to the intersection and union components of the inter-over-union calculation to smooth results
-    respectively, these values should be small. The `include_background` class attribute can be set to False for
-    an instance of DiceLoss to exclude the first category (channel index 0) which is by convention assumed to be
-    background. If the non-background segmentations are small compared to the total image size they can get
-    overwhelmed by the signal from the background so excluding it in such cases helps convergence.
-
-    Milletari, F. et. al. (2016) V-Net: Fully Convolutional Neural Networks forVolumetric Medical Image Segmentation, 3DV, 2016.
-
-    """
-
     def __init__(
         self,
         from_logits: bool = False,
@@ -33,17 +18,7 @@ class SegLoss(Loss):
         smooth_dr: float = 1.0,
         dtype: str = "float32",
     ) -> None:
-        """
-        Args:
-            include_background: if False, channel index 0 (background category) is excluded from the calculation.
-            squared_pred: use squared versions of targets and predictions in the denominator or not.
-            jaccard: compute Jaccard Index (soft IoU) instead of dice or not.
-            smooth_nr: a small constant added to the numerator to avoid zero.
-            smooth_dr: a small constant added to the denominator to avoid nan.
 
-        Raises:
-
-        """
         if jaccard:
             super(SegLoss, self).__init__(name="IouLoss")
         elif log_dice:
@@ -65,17 +40,7 @@ class SegLoss(Loss):
         y_true: tf.Tensor,
         y_pred: tf.Tensor,
     ) -> tf.Tensor:
-        """
-        Args:
-            input: the shape should be BH[WD]N, where N is the number of classes.
-            target: the shape should be BH[WD]N, where N is the number of classes.
 
-        Raises:
-            AssertionError: When input and target (after one hot transform if setted)
-                have different shapes.
-            ValueError: When ``self.reduction`` is not one of ["mean", "sum", "none"].
-
-        """
         y_true = tf.cast(y_true, dtype=self.dtype)
         y_pred = tf.cast(y_pred, dtype=self.dtype)
 
@@ -121,23 +86,11 @@ class SegLoss(Loss):
         y_true: tf.Tensor,
         y_pred: tf.Tensor,
     ) -> tf.Tensor:
-        """
-        Args:
-            input: the shape should be BH[WD]N, where N is the number of classes.
-            target: the shape should be BH[WD]N, where N is the number of classes.
 
-        Raises:
-            AssertionError: When input and target (after one hot transform if setted)
-                have different shapes.
-            ValueError: When ``self.reduction`` is not one of ["mean", "sum", "none"].
-
-        """
         return self.get_seg_loss(y_true, y_pred)
 
 
 class CESegLoss(SegLoss):
-    """"""
-
     def __init__(
         self,
         from_logits: bool = True,
@@ -149,17 +102,6 @@ class CESegLoss(SegLoss):
         smooth_nr: float = 1.0,
         smooth_dr: float = 1.0,
     ) -> None:
-        """
-        Args:
-            include_background: if False, channel index 0 (background category) is excluded from the calculation.
-            squared_pred: use squared versions of targets and predictions in the denominator or not.
-            jaccard: compute Jaccard Index (soft IoU) instead of dice or not.
-            smooth_nr: a small constant added to the numerator to avoid zero.
-            smooth_dr: a small constant added to the denominator to avoid nan.
-
-        Raises:
-
-        """
         super().__init__(from_logits=from_logits, jaccard=jaccard, log_dice=log_dice)
         self.alpha = float(alpha)
         self.include_background = include_background
@@ -172,17 +114,7 @@ class CESegLoss(SegLoss):
         y_true: tf.Tensor,
         y_pred: tf.Tensor,
     ) -> tf.Tensor:
-        """
-        Args:
-            input: the shape should be BH[WD]N, where N is the number of classes.
-            target: the shape should be BH[WD]N, where N is the number of classes.
 
-        Raises:
-            AssertionError: When input and target (after one hot transform if setted)
-                have different shapes.
-            ValueError: When ``self.reduction`` is not one of ["mean", "sum", "none"].
-
-        """
         f_loss: tf.Tensor = K.categorical_crossentropy(y_true, y_pred, from_logits=self.from_logits, axis=-1)
         # mean over all but batch axis
         mean_axes = [i for i in range(1, len(f_loss.shape))]
@@ -192,8 +124,6 @@ class CESegLoss(SegLoss):
 
 
 class BCESegLoss(SegLoss):
-    """"""
-
     def __init__(
         self,
         from_logits: bool = True,
@@ -205,17 +135,6 @@ class BCESegLoss(SegLoss):
         smooth_nr: float = 1.0,
         smooth_dr: float = 1.0,
     ) -> None:
-        """
-        Args:
-            include_background: if False, channel index 0 (background category) is excluded from the calculation.
-            squared_pred: use squared versions of targets and predictions in the denominator or not.
-            jaccard: compute Jaccard Index (soft IoU) instead of dice or not.
-            smooth_nr: a small constant added to the numerator to avoid zero.
-            smooth_dr: a small constant added to the denominator to avoid nan.
-
-        Raises:
-
-        """
         super().__init__(from_logits=from_logits, jaccard=jaccard, log_dice=log_dice)
         self.include_background = include_background
         self.alpha = float(alpha)
@@ -228,17 +147,6 @@ class BCESegLoss(SegLoss):
         y_true: tf.Tensor,
         y_pred: tf.Tensor,
     ) -> tf.Tensor:
-        """
-        Args:
-            input: the shape should be BH[WD]N, where N is the number of classes.
-            target: the shape should be BH[WD]N, where N is the number of classes.
-
-        Raises:
-            AssertionError: When input and target (after one hot transform if setted)
-                have different shapes.
-            ValueError: When ``self.reduction`` is not one of ["mean", "sum", "none"].
-
-        """
         f_loss: tf.Tensor = K.binary_crossentropy(y_true, y_pred, from_logits=self.from_logits)
         # mean over all but batch axis
         mean_axes = [i for i in range(1, len(f_loss.shape))]

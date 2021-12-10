@@ -11,7 +11,7 @@ if ! (return 0 2>/dev/null) ; then
     # an error message is emitted, and the exit code is set to 1
     echo
     echo -e $RED">>> This script should be sourced like"$NC
-    echo "    source ./bash/finalize_environment.sh"
+    echo "    source ./bash/init_development.sh"
     echo
     exit 1  # we detected we are NOT source'd so we can use exit
 fi
@@ -29,12 +29,18 @@ if type conda 1>/dev/null; then
     conda activate ${ENV_NAME}
 fi
 
-echo ">>> Installing packages with poetry"
-# install all dependencies into your conda env
-poetry install
-echo ">>> Init git"
 if ! (type conda 1>/dev/null;) then
   source ./.venv/Scripts/activate
 fi
 
-echo ">>> All done. Environment is ready to go!"
+# activate git
+git init
+echo ">>> Init dvc"
+
+# activate DvC
+dvc init
+echo ">>> Init pre-commit"
+# activate pre-commit
+pre-commit install
+
+echo ">>> All done. Environment is ready to go for development!"

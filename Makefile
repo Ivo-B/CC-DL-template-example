@@ -5,8 +5,7 @@
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-PROJECT_NAME := Example_CC_DL_template
-MODULE_NAME := cctest
+MODULE_NAME := {{cookiecutter.module_name}}
 PYTHON_VERSION := 3.9
 PYTHON_INTERPRETER := python
 

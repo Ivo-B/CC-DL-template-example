@@ -7,8 +7,8 @@ import tensorflow as tf
 from albumentations import BasicTransform, Compose
 from omegaconf import DictConfig
 
-from cctest.datamodule.base_datamodule import TfDataloader, load_data_fn
-from cctest.utils import utils
+from {{cookiecutter.module_name}}.datamodule.base_datamodule import TfDataloader, load_data_fn
+from {{cookiecutter.module_name}}.utils import utils
 
 log = utils.get_logger(__name__)
 
@@ -124,6 +124,12 @@ class MNISTDataset(TfDataloader):
                     if "_target_" in da_conf:
                         log.info(f"Instantiating training data transformation <{da_conf._target_}>")
                         aug_comp_training.append(hydra.utils.instantiate(da_conf))
+
+            if data_aug.get("validation"):
+                for _, da_conf in data_aug.validation.items():
+                    if "_target_" in da_conf:
+                        log.info(f"Instantiating validation data transformation <{da_conf._target_}>")
+                        aug_comp_validation.append(hydra.utils.instantiate(da_conf))
 
             for da_key, da_conf in data_aug.items():
                 if "_target_" in da_conf:

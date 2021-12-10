@@ -1,0 +1,29 @@
+# @package _global_
+
+# to execute this experiment run:
+# python run_training.py experiment=oxfordpet_example_simple
+
+defaults:
+  - override /trainer: default_seg.yaml
+  - override /model: oxfordpet_model_unet.yaml
+  - override /datamodule: oxfordpet_datamodule.yaml
+  - override /callbacks: default.yaml
+  - override /logger: null
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+name: simple_example
+seed: "OxCAFFEE"
+
+trainer:
+  epochs: 5
+
+model:
+  input_shape: [128, 128, 3]
+  start_filters: 16
+  kernel_size: [3, 3]
+  num_down_blocks: 4
+  num_classes: 2
+
+datamodule:
+  batch_size: 32

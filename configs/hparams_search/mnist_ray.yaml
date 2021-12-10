@@ -1,8 +1,8 @@
 # @package _global_
 
 # example hyperparameter optimization of some experiment with Optuna:
-# python run_training.py -m hparams_search=mnist_optuna experiment=mnist_example_simple
-# python run_training.py -m hparams_search=mnist_optuna experiment=mnist_example_simple hydra.sweeper.n_trials=30
+# python run.py -m hparams_search=mnist_optuna experiment=example_simple
+# python run.py -m hparams_search=mnist_optuna experiment=example_simple hydra.sweeper.n_trials=30
 
 defaults:
   - override /hydra/sweeper: optuna.yaml
@@ -31,14 +31,14 @@ hydra:
     sampler:
       _target_: optuna.samplers.TPESampler
       seed: 12345
-      consider_prior: True
+      consider_prior: true
       prior_weight: 1.0
-      consider_magic_clip: True
-      consider_endpoints: False
+      consider_magic_clip: true
+      consider_endpoints: false
       n_startup_trials: 10
       n_ei_candidates: 24
-      multivariate: False
-      warn_independent_sampling: True
+      multivariate: false
+      warn_independent_sampling: true
 
     # define range of hyperparameters
     search_space:

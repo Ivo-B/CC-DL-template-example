@@ -1,7 +1,7 @@
 # @package _global_
 
 # run in debug mode with:
-# `python run.py mode=debug`
+# `python run_training.py mode=debug`
 
 defaults:
   - override /trainer: debug.yaml
@@ -13,7 +13,7 @@ name: run_${current_time}
 
 hydra:
   # sets level of all command line loggers to 'DEBUG'
-  verbose: [__main__, hydra, cctest]
+  verbose: [__main__, hydra, {{cookiecutter.module_name}}]
 
   # https://hydra.cc/docs/tutorials/basic/running_your_app/logging/
   # sets level of only chosen command line loggers to 'DEBUG'

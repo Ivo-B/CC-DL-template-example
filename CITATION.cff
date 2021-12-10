@@ -2,16 +2,15 @@
 ---
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "My Research Software"
+title: "{{cookiecutter.project_name}}"
 authors:
-  - family-names: Baltruschat
+  - name: {{cookiecutter.author_name}}
     given-names: Ivo
-    orcid: https://orcid.org/0000-0002-8748-3820
-date-released: 2021-01-01
-version: 0.1.4
-repository-code: https://github.com/Ivo-B/my-research-software
+date-released: {{% now 'utc', '%Y' %}}-DD-MM
+version: 0.1.0
+repository-code: https://repository-provider/username/{{cookiecutter.repo_name}}
 # doi: 10.5281/zenodo.1234
-license: MIT
+license: {{cookiecutter.open_source_license}}
 
 
 references:

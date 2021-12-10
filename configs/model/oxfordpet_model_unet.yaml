@@ -1,4 +1,4 @@
-_target_: cctest.model.modules.simple_unet.SimpleUNet
+_target_: {{cookiecutter.module_name}}.model.modules.simple_unet.SimpleUNet
 
 input_shape: [128, 128, 3]
 start_filters: 16

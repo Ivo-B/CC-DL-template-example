@@ -1,4 +1,4 @@
-_target_: cctest.model.modules.simple_dense_net.SimpleDenseNet
+_target_: {{cookiecutter.module_name}}.model.modules.simple_dense_net.SimpleDenseNet
 
 input_shape: [28, 28, 1]
 lin1_size: 256

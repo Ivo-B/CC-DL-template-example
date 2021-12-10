@@ -8,12 +8,11 @@ style = "https://raw.githubusercontent.com/wemake-services/wemake-python-stylegu
 
 
 [tool.poetry]
-name = "cctest"
-description = "Das ist ein Test"
-version = "0.1.4"
+name = "{{cookiecutter.module_name}}"
+description = "{{cookiecutter.description}}"
+version = "0.1.0"
 readme = "README.md"
-authors = ["Ivo Matteo Baltruschat <ivo.baltruschat@desy.de>"]
-
+authors = ["{{cookiecutter.author_name}} <{{cookiecutter.author_mail}}>"]
 
 
 [tool.poetry.dependencies]
@@ -44,7 +43,6 @@ natsort = "^8.0.0"
 icecream = "^2.1.1"
 bcrypt = "^3.2.0"
 # hydra-ray-launcher, add later whenn version is bumped
-
 
 
 [tool.poetry.dev-dependencies]

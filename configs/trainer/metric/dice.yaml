@@ -1,5 +1,5 @@
 dice:
-  _target_: cctest.utils.my_metrics.MeanSegMetric
+  _target_: {{cookiecutter.module_name}}.utils.my_metrics.MeanSegMetric
 
   jaccard: False
   include_background: False

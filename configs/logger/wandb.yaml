@@ -2,7 +2,7 @@
 
 wandb_init:
   user: null
-  project: CC_example_template
+  project: {{cookiecutter.project_name}}
   name: ${name}
 
 wandb:

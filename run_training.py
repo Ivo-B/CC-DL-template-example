@@ -18,8 +18,8 @@ dotenv.load_dotenv(override=True)
 def main(config: DictConfig):
     # Imports should be nested inside @hydra.main to optimize tab completion
     # Read more here: https://github.com/facebookresearch/hydra/issues/934
-    from cctest.executor.training import train  # noqa: WPS433
-    from cctest.utils import utils  # noqa: WPS433
+    from {{cookiecutter.module_name}}.executor.training import train  # noqa: WPS433
+    from {{cookiecutter.module_name}}.utils import utils  # noqa: WPS433
 
     # A couple of optional utilities:
     # - disabling python warnings

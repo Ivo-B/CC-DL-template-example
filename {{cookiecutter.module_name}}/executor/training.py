@@ -7,9 +7,9 @@ from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 from tensorflow.keras.callbacks import Callback
 
-from cctest.datamodule.base_datamodule import TfDataloader
-from cctest.model.base_model_trainer import TrainingModule
-from cctest.utils import utils
+from {{cookiecutter.module_name}}.datamodule.base_datamodule import TfDataloader
+from {{cookiecutter.module_name}}.model.base_model_trainer import TrainingModule
+from {{cookiecutter.module_name}}.utils import utils
 
 log = utils.get_logger(__name__)
 

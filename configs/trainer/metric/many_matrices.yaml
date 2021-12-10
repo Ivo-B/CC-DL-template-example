@@ -1,7 +1,6 @@
 # train with many matrices at once
 
 defaults:
-  - accuracy.yaml
-  - dice.yaml
-  - iou.yaml
-  # - wandb.yaml
+  - accuracy
+  - dice
+  - iou

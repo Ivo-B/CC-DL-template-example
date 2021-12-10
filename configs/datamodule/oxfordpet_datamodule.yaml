@@ -1,7 +1,7 @@
 defaults:
   - data_aug: oxfordpet_medium_aug.yaml
 
-_target_: cctest.datamodule.oxford_iiit_pet_datamodule.OxfordPetDataset
+_target_: {{cookiecutter.module_name}}.datamodule.oxfordpet_datamodule.OxfordPetDataset
 
 data_dir: ${data_dir} # data_dir is specified in config.yaml
 train_list: "OxfordPet_training_data.txt"

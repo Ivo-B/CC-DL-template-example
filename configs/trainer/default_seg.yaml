@@ -4,7 +4,7 @@ defaults:
   - optimizer: adam.yaml
   - lr_scheduler: reduce_lr_on_plateau.yaml
 
-_target_: cctest.model.base_model_trainer.TrainingModule
+_target_: {{cookiecutter.module_name}}.model.base_model_trainer.TrainingModule
 
 # set `-1` to train on all GPUs in a node,
 # '>0' to train on specific num of GPUs in a node,

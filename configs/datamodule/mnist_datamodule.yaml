@@ -1,7 +1,7 @@
 defaults:
   - data_aug: mnist_small_aug.yaml
 
-_target_: cctest.datamodule.mnist_datamodule.MNISTDataset
+_target_: {{cookiecutter.module_name}}.datamodule.mnist_datamodule.MNISTDataset
 
 data_dir: ${data_dir} # data_dir is specified in config.yaml
 data_training_list: "MNIST_training_data.txt"
