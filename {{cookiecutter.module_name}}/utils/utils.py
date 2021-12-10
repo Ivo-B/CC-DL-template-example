@@ -107,12 +107,14 @@ def print_config(
 
 def print_history(
     history: dict,
+    validation_freq: int,
 ) -> None:
-    """Prints content of history using Rich library and its table structure.
+    """Prints content of training history using Rich library and its table structure.
     Args:
         history (dict): Results from keras fit.
+        validation_freq (int): Results from keras fit.
     """
-    # TODO: fix problem when validation is skipped!
+
     style = "dim"
     table = rich.table.Table(title="HISTORY", show_header=True, header_style="bold magenta")
     all_rows = []
@@ -122,7 +124,7 @@ def print_history(
         idx += 1
         table.add_column(field, style=style, justify="right")
         all_rows.append([field])
-        for epoch, entry in enumerate(history[field]):
+        for epoch, entry in enumerate(history[field], start=1):
             all_rows[idx].append(entry)
             if idx == 1:
                 all_rows[0].append(epoch)
@@ -131,12 +133,17 @@ def print_history(
     for num_row in range(1, len(all_rows[0])):
         row = ()
         for num_col in range(len(all_rows)):
-            if all_rows[num_col][0] == "lr":
-                row += ("{:.4e}".format(all_rows[num_col][num_row]),)
-            elif all_rows[num_col][0] == "Epoch":
+            if all_rows[num_col][0] == "Epoch":
                 row += ("{:d}".format(all_rows[num_col][num_row]),)
+            elif all_rows[num_col][0] == "lr":
+                row += ("{:.4e}".format(all_rows[num_col][num_row]),)
             else:
-                row += ("{:.4f}".format(all_rows[num_col][num_row]),)
+                if "val_" in all_rows[num_col][0] and all_rows[0][num_row] % validation_freq != 0:
+                    row += (" ",)
+                elif "val_" in all_rows[num_col][0]:
+                    row += ("{:.4f}".format(all_rows[num_col][num_row // validation_freq]),)
+                else:
+                    row += ("{:.4f}".format(all_rows[num_col][num_row]),)
         table.add_row(*row)
 
     rich.print(table)
@@ -173,7 +180,7 @@ def log_hyperparameters(
     hparams["model"]["params_total"] = trainer.model.count_params()
     hparams["model"]["params_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.trainable_weights])
     hparams["model"]["params_not_trainable"] = np.sum(
-        [np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights]
+        [np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights],
     )
 
     # flatten nested dicts

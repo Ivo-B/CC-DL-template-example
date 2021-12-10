@@ -48,7 +48,6 @@ class SimpleUNet(keras.Model):
             out_list.append(
                 keras.layers.Conv2D(filters, kernel_size, padding="same", use_bias="none", name=f"{name}_{i}_conv"),
             )
-            # out_list.append(keras.layers.experimental.SyncBatchNormalization(name=f"{name}_{i}_syncBN"))
             out_list.append(keras.layers.BatchNormalization(name=f"{name}_{i}_BN"))
             out_list.append(keras.layers.LeakyReLU(alpha=2e-1, name=f"{name}_{i}_leakyRelu"))
         return out_list

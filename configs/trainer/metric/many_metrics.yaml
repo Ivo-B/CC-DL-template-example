@@ -1,4 +1,4 @@
-# train with many matrices at once
+# train with many metrics at once
 
 defaults:
   - accuracy

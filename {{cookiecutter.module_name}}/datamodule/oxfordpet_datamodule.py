@@ -254,17 +254,12 @@ class OxfordPetDataset(TfDataloader):
             raise ValueError
         dataset = tf.data.Dataset.from_tensor_slices((img_paths, mask_paths))
 
-        if phase == PHASE_TRAIN:
-            dataset = dataset.shuffle(
-                len(img_paths),
-                reshuffle_each_iteration=True,
-                seed=SHUFFEL_SEED,
-            )
-
         dataset = dataset.map(
             load_data_pair_fn,
             num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
+
+        dataset = dataset.cache()
 
         dataset = dataset.map(
             partial(
@@ -277,7 +272,13 @@ class OxfordPetDataset(TfDataloader):
         ).prefetch(buffer_size=AUTOTUNE)
 
         if phase == PHASE_TRAIN:
+            dataset = dataset.shuffle(
+                len(img_paths),
+                reshuffle_each_iteration=True,
+                seed=SHUFFEL_SEED,
+            )
             dataset = dataset.repeat()
+
         dataset = dataset.batch(
             self._global_batch_size,
             drop_remainder=True,

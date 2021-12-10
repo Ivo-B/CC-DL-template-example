@@ -1,5 +1,5 @@
 iou:
-  _target_: {{cookiecutter.module_name}}.utils.my_metrics.MeanSegMetric
+  _target_: {{cookiecutter.module_name}}.utils.my_metric.MeanSegMetric
 
   jaccard: True
   include_background: False

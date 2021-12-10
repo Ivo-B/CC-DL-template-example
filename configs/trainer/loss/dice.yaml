@@ -1,4 +1,4 @@
-_target_: {{cookiecutter.module_name}}.utils.my_losses.SegLoss
+_target_: {{cookiecutter.module_name}}.utils.my_loss.SegLoss
 
 from_logits: False
 include_background: True

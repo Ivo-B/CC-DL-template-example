@@ -18,7 +18,7 @@ CONDA_ENV_NAME := $(MODULE_NAME)_py$(subst .,,$(PYTHON_VERSION))
 
 ## Make Oxfordpet Dataset
 data_oxford:
-	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxford_pet.py
+	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxfordpet.py
 
 ## Make MNIST Dataset
 data_mnist:
