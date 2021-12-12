@@ -36,6 +36,7 @@ class SimpleUNet(keras.Model):
             self.up_layers += SimpleUNet.conv2d_block(start_filters, kernel_size, name=f"up{idx}_CB")
 
         self.conv1 = keras.layers.Conv2D(num_classes, (1, 1), name="conv_logits")
+        # make sure you have dtype="float32" if your are using mixed_precision
         self.out_act = keras.layers.Activation("softmax", dtype="float32", name="act_predictions")
 
         # adding batch dim with None

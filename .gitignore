@@ -313,5 +313,5 @@ modules.xml
 /data/raw/*
 !/data/raw/.gitkeep
 
-/models/*
-!/models/.gitkeep
+/docs/documents/models/*
+!/docs/documents/models/.gitkeep

@@ -10,6 +10,7 @@ _target_: cctest.model.base_model_trainer.TrainingModule
 # '>0' to train on specific num of GPUs in a node,
 # `0` to train on CPU only,
 gpus: -1
+mixed_precision: False
 
 epochs: 10
-validation_freq: 0.003
+validation_freq: 1
