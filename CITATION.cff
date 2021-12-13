@@ -10,7 +10,7 @@ date-released: {% now 'utc', '%Y' %}-DD-MM
 version: 0.1.0
 repository-code: https://repository-provider/username/{{cookiecutter.repo_name}}
 # doi: 10.5281/zenodo.1234
-license: {{cookiecutter.open_source_license}}
+license: {{cookiecutter.license}}
 
 
 references:
