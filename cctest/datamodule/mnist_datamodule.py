@@ -80,41 +80,46 @@ class MNISTDataset(TfDataloader):
     def __init__(
         self,
         data_dir: str,
-        data_training_list: str,
-        data_val_list: str,
-        data_test_list: str,
+        train_list: str,
+        val_list: str,
+        test_list: str,
         batch_size: int,
         num_gpus: int,
+        cache_data: bool,
         data_aug: DictConfig,
     ):
         """__init__.
 
         :param data_dir:
-        :param data_training_list:
-        :param data_val_list:
-        :param data_test_list:
+        :param train_list:
+        :param val_list:
+        :param test_list:
         :param batch_size:
         :param num_gpus:
+        :param cache_data:
         :param data_aug:
         """
         self._data_dir = Path(data_dir)
-        self._data_training_list = data_training_list
-        self._data_val_list = data_val_list
-        if num_gpus == 0:
-            num_gpus = 1
-        self._global_batch_size = batch_size * num_gpus
+        self._train_list = train_list
+        self._val_list = val_list
+        self._test_list = test_list
+        self._global_batch_size = batch_size * num_gpus if num_gpus > 0 else batch_size
+        self._cache_data = cache_data
         self._n_classes = 10
         self._img_shape = (28, 28, 1)
 
         # loading file path from text file
-        img_train_paths, train_labels = self.load_data(
-            data_training_list,
-        )
+        img_train_paths, train_labels = self.load_data(train_list)
         self._img_train_paths = img_train_paths
         self._train_labels = train_labels
-        img_val_paths, val_labels = self.load_data(data_val_list)
+
+        img_val_paths, val_labels = self.load_data(val_list)
         self._img_val_paths = img_val_paths
         self._val_labels = val_labels
+
+        img_test_paths, test_labels = self.load_data(test_list)
+        self._img_test_paths = img_test_paths
+        self._test_labels = test_labels
 
         aug_comp_training: list[BasicTransform] = []
         aug_comp_validation: list[BasicTransform] = []
@@ -124,6 +129,12 @@ class MNISTDataset(TfDataloader):
                     if "_target_" in da_conf:
                         log.info(f"Instantiating training data transformation <{da_conf._target_}>")
                         aug_comp_training.append(hydra.utils.instantiate(da_conf))
+
+            if data_aug.get("validation"):
+                for _, da_conf in data_aug.validation.items():
+                    if "_target_" in da_conf:
+                        log.info(f"Instantiating validation data transformation <{da_conf._target_}>")
+                        aug_comp_validation.append(hydra.utils.instantiate(da_conf))
 
             for da_key, da_conf in data_aug.items():
                 if "_target_" in da_conf:
@@ -136,6 +147,7 @@ class MNISTDataset(TfDataloader):
         self.set_aug_val(aug_comp_validation)
         self._val_data_size = len(self._img_val_paths)
         self._train_data_size = len(self._img_train_paths)
+        self._test_data_size = len(self._img_test_paths)
         self.steps_per_epoch = self._train_data_size // self._global_batch_size
 
     def load_data(
@@ -197,7 +209,7 @@ class MNISTDataset(TfDataloader):
             raise ValueError
         dataset = tf.data.Dataset.from_tensor_slices((img_paths, labels))
 
-        if phase == "training":
+        if phase == "training" and not self._cache_data:
             dataset = dataset.shuffle(
                 len(img_paths),
                 reshuffle_each_iteration=True,
@@ -209,6 +221,17 @@ class MNISTDataset(TfDataloader):
             num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
 
+        dataset = dataset.cache() if self._cache_data else dataset
+
+        if phase == "training":
+            if self._cache_data:
+                dataset = dataset.shuffle(
+                    len(img_paths),
+                    reshuffle_each_iteration=True,
+                    seed=42,
+                )
+                dataset = dataset.repeat()
+
         dataset = dataset.map(
             partial(
                 process_data_fn,
@@ -219,8 +242,6 @@ class MNISTDataset(TfDataloader):
             num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
 
-        if phase == "training":
-            dataset = dataset.repeat()
         dataset = dataset.batch(
             self._global_batch_size,
             drop_remainder=True,

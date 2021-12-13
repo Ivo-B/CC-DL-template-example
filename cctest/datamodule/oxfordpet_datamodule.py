@@ -149,6 +149,7 @@ class OxfordPetDataset(TfDataloader):
         test_list: str,
         batch_size: int,
         num_gpus: int,
+        cache_data: bool,
         data_aug: DictConfig,
     ):  # noqa: WPS211, E501
         """__init__.
@@ -159,24 +160,29 @@ class OxfordPetDataset(TfDataloader):
         :param test_list:
         :param batch_size:
         :param num_gpus:
+        :param cache_data:
         """
         self._data_dir = Path(data_dir)
-        self._data_training_list = train_list
-        self._data_val_list = val_list
-        self._data_test_list = test_list
-        if num_gpus == 0:
-            num_gpus = 1
-        self._global_batch_size = batch_size * num_gpus
+        self._train_list = train_list
+        self._val_list = val_list
+        self._test_list = test_list
+        self._global_batch_size = batch_size * num_gpus if num_gpus > 0 else batch_size
+        self._cache_data = cache_data
         self._n_classes = 2
         self._img_shape = (128, 128, 3)
 
         # loading file path from text file
-        img_train_paths, mask_train_paths = self.load_data(self._data_training_list)
+        img_train_paths, mask_train_paths = self.load_data(train_list)
         self._img_train_paths = img_train_paths
         self._mask_train_paths = mask_train_paths
-        img_val_paths, mask_val_paths = self.load_data(self._data_val_list)
+
+        img_val_paths, mask_val_paths = self.load_data(val_list)
         self._img_val_paths = img_val_paths
         self._mask_val_paths = mask_val_paths
+
+        img_test_paths, mask_test_paths = self.load_data(test_list)
+        self._img_test_paths = img_test_paths
+        self._mask_test_paths = mask_test_paths
 
         aug_comp_training: list[BasicTransform] = []
         aug_comp_validation: list[BasicTransform] = []
@@ -187,17 +193,24 @@ class OxfordPetDataset(TfDataloader):
                         log.info(f"Instantiating training data transformation <{da_conf._target_}>")
                         aug_comp_training.append(hydra.utils.instantiate(da_conf))
 
+            if data_aug.get("validation"):
+                for _, da_conf in data_aug.validation.items():
+                    if "_target_" in da_conf:
+                        log.info(f"Instantiating validation data transformation <{da_conf._target_}>")
+                        aug_comp_validation.append(hydra.utils.instantiate(da_conf))
+
             for da_key, da_conf in data_aug.items():
                 if "_target_" in da_conf:
-                    log.info(f"Instantiating Data Transformation <{da_conf._target_}>")
+                    log.info(f"Instantiating data transformation <{da_conf._target_}>")
                     transformation = hydra.utils.instantiate(da_conf)
                     aug_comp_training.append(transformation)
                     aug_comp_validation.append(transformation)
 
         self.set_aug_train(aug_comp_training)
         self.set_aug_val(aug_comp_validation)
-        self._val_data_size = len(self._img_val_paths)
         self._train_data_size = len(self._img_train_paths)
+        self._val_data_size = len(self._img_val_paths)
+        self._test_data_size = len(self._img_test_paths)
         self.steps_per_epoch = self._train_data_size // self._global_batch_size
 
     def load_data(self, data_list: str, do_shuffle: bool = True) -> tuple[np.array, np.array]:
@@ -249,12 +262,28 @@ class OxfordPetDataset(TfDataloader):
             raise ValueError
         dataset = tf.data.Dataset.from_tensor_slices((img_paths, mask_paths))
 
+        if phase == PHASE_TRAIN and not self._cache_data:
+            dataset = dataset.shuffle(
+                len(img_paths),
+                reshuffle_each_iteration=True,
+                seed=SHUFFEL_SEED,
+            )
+
         dataset = dataset.map(
             load_data_pair_fn,
             num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
 
-        dataset = dataset.cache()
+        dataset = dataset.cache() if self._cache_data else dataset
+
+        if phase == PHASE_TRAIN:
+            if self._cache_data:
+                dataset = dataset.shuffle(
+                    len(img_paths),
+                    reshuffle_each_iteration=True,
+                    seed=SHUFFEL_SEED,
+                )
+            dataset = dataset.repeat()
 
         dataset = dataset.map(
             partial(
@@ -265,14 +294,6 @@ class OxfordPetDataset(TfDataloader):
             ),
             num_parallel_calls=AUTOTUNE,
         ).prefetch(buffer_size=AUTOTUNE)
-
-        if phase == PHASE_TRAIN:
-            dataset = dataset.shuffle(
-                len(img_paths),
-                reshuffle_each_iteration=True,
-                seed=SHUFFEL_SEED,
-            )
-            dataset = dataset.repeat()
 
         dataset = dataset.batch(
             self._global_batch_size,
