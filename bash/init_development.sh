@@ -1,5 +1,5 @@
 #!/bin/bash
-ENV_NAME="cctest_py39"
+ENV_NAME="{{cookiecutter.module_name}}_py39"
 
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -11,7 +11,7 @@ if ! (return 0 2>/dev/null) ; then
     # an error message is emitted, and the exit code is set to 1
     echo
     echo -e $RED">>> This script should be sourced like"$NC
-    echo "    source ./bash/finalize_environment.sh"
+    echo "    source ./bash/init_development.sh"
     echo
     exit 1  # we detected we are NOT source'd so we can use exit
 fi
@@ -29,10 +29,20 @@ if type conda 1>/dev/null; then
     conda activate ${ENV_NAME}
 fi
 
-echo ">>> Installing packages with poetry"
-# install all dependencies into your conda env
-poetry install
 if ! (type conda 1>/dev/null;) then
   source ./.venv/Scripts/activate
 fi
-echo ">>> All done. Environment is ready to go!"
+
+# activate git
+echo ">>> Init git"
+git init
+
+# activate dvc
+echo ">>> Init dvc"
+dvc init
+
+# activate pre-commit
+echo ">>> Init pre-commit"
+pre-commit install
+
+echo ">>> All done. Environment is ready to go for development!"

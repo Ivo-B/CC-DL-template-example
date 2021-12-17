@@ -36,6 +36,7 @@ class SimpleUNet(keras.Model):
             self.up_layers += SimpleUNet.conv2d_block(start_filters, kernel_size, name=f"up{idx}_CB")
 
         self.conv1 = keras.layers.Conv2D(num_classes, (1, 1), name="conv_logits")
+        # make sure you have dtype="float32" if your are using mixed_precision
         self.out_act = keras.layers.Activation("softmax", dtype="float32", name="act_predictions")
 
         # adding batch dim with None
@@ -48,7 +49,6 @@ class SimpleUNet(keras.Model):
             out_list.append(
                 keras.layers.Conv2D(filters, kernel_size, padding="same", use_bias="none", name=f"{name}_{i}_conv"),
             )
-            # out_list.append(keras.layers.experimental.SyncBatchNormalization(name=f"{name}_{i}_syncBN"))
             out_list.append(keras.layers.BatchNormalization(name=f"{name}_{i}_BN"))
             out_list.append(keras.layers.LeakyReLU(alpha=2e-1, name=f"{name}_{i}_leakyRelu"))
         return out_list

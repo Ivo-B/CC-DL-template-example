@@ -1,3 +1,4 @@
+# transformations will be added chronological
 training:
   shift_scale_rotate:
     _target_: albumentations.ShiftScaleRotate
@@ -12,6 +13,13 @@ training:
     p: 0.2
     brightness_limit: 0.2
     contrast_limit: 0.2
+
+validation:
+  center_crop:
+    _target_: albumentations.CenterCrop
+    p: 1.0
+    height: ${model.input_shape[0]}
+    width: ${model.input_shape[1]}
 
 # will be added to both transformation pipelines (Training and Validation)
 norm_data:

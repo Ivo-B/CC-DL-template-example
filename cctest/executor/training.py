@@ -48,6 +48,12 @@ def train(config: DictConfig) -> Optional[float]:
         for gpu in visible_devices:
             tf.config.experimental.set_memory_growth(gpu, True)
 
+    if config.trainer.get("mixed_precision"):
+        if config.trainer.get("gpus") > 0:
+            tf.keras.mixed_precision.set_global_policy('mixed_float16')
+        else:
+            log.warning("Mixed precision can only be used with GPUs!")
+
     #############################
     # Doing data stuff
     #############################
@@ -67,7 +73,7 @@ def train(config: DictConfig) -> Optional[float]:
     #########################
     callbacks: List[Callback] = []
     if "callback" in config:
-        for _, cb_conf in config.callbacks.items():
+        for _, cb_conf in config.callback.items():
             if "_target_" in cb_conf:
                 log.info(f"Instantiating callback <{cb_conf._target_}>")
                 callbacks.append(hydra.utils.instantiate(cb_conf))

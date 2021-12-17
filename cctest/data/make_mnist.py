@@ -58,7 +58,7 @@ def train_val_test_spitting(file_names, all_y):
         X_train_val, X_test = file_names[train_index], file_names[test_index]
         y_train_val, y_test = all_y[train_index], all_y[test_index]
 
-    with open(output_path / "MNIST_test_data.txt", "w") as f:
+    with open(output_path / "MNIST_testing_data.txt", "w") as f:
         for file_name, y in zip(X_test, y_test):
             f.write(f"{file_name}, {y}\n")
 
