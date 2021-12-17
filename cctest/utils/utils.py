@@ -2,20 +2,26 @@ import logging
 import os
 import random
 import warnings
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
+import flatdict
 import numpy as np
 import rich.syntax
+import rich.table
 import rich.tree
 import tensorflow as tf
+import wandb
 from omegaconf import DictConfig, OmegaConf
 
 
-def set_all_seeds(seed_value: str = "0xCAFFEE") -> None:
+def set_all_seeds(seed_value: Union[str, int] = "0xCAFFEE") -> None:
     # Set a seed value
-    seed_value = int(seed_value, 0)
+    if isinstance(seed_value, int):
+        seed_value = seed_value
+    else:
+        seed_value = int(seed_value, 0)
     # 1. Set `PYTHONHASHSEED` environment variable at a fixed value
-    os.environ['PYTHONHASHSEED'] = str(seed_value)
+    os.environ["PYTHONHASHSEED"] = str(seed_value)
     # 2. Set `python` built-in pseudo-random generator at a fixed value
     random.seed(seed_value)
     # 3. Set `numpy` pseudo-random generator at a fixed value
@@ -40,8 +46,6 @@ def get_logger(name=__name__) -> logging.Logger:
 def extras(config: DictConfig) -> None:
     """A couple of optional utilities, controlled by main config file:
     - disabling warnings
-    - forcing debug friendly configuration
-    - verifying experiment name is set when running in experiment mode
     Modifies DictConfig in place.
     Args:
         config (DictConfig): Configuration composed by Hydra.
@@ -57,22 +61,11 @@ def extras(config: DictConfig) -> None:
     # verify experiment name is set when running in experiment mode
     if config.get("experiment_mode") and not config.get("name"):
         log.info(
-            "Running in experiment mode without the experiment name specified! "
-            "Use `python run.py mode=exp name=experiment_name`",
+            "Running in experiment mode without the experiment name specified!\n"
+            "Use `python run_training.py mode=exp name=experiment_name`",
         )
         log.info("Exiting...")
         exit()
-
-    # force debugger friendly configuration if <config.trainer.fast_dev_run=True>
-    # debuggers don't like GPUs and multiprocessing
-    if config.trainer.get("fast_dev_run"):
-        log.info("Forcing debugger friendly configuration! <config.trainer.fast_dev_run=True>")
-        if config.trainer.get("gpus"):
-            config.trainer.gpus = 0
-        if config.datamodule.get("pin_memory"):
-            config.datamodule.pin_memory = False
-        if config.datamodule.get("num_workers"):
-            config.datamodule.num_workers = 0
 
 
 def print_config(
@@ -81,9 +74,8 @@ def print_config(
         "trainer",
         "model",
         "datamodule",
-        "callbacks",
+        "callback",
         "logger",
-        "test_after_training",
         "seed",
         "name",
     ),
@@ -99,6 +91,11 @@ def print_config(
 
     style = "dim"
     tree = rich.tree.Tree("CONFIG", style=style, guide_style=style)
+
+    # add log dir
+    branch = tree.add("log_dir", style=style, guide_style=style)
+    branch_content = os.getcwd()
+    branch.add(rich.syntax.Syntax(branch_content, "yaml"))
 
     for field in fields:
         branch = tree.add(field, style=style, guide_style=style)
@@ -116,58 +113,96 @@ def print_config(
         rich.print(tree, file=fp)
 
 
+def print_history(
+    history: dict,
+    validation_freq: int,
+) -> None:
+    """Prints content of training history using Rich library and its table structure.
+    Args:
+        history (dict): Results from keras fit.
+        validation_freq (int): Results from keras fit.
+    """
+
+    style = "dim"
+    table = rich.table.Table(title="HISTORY", show_header=True, header_style="bold magenta")
+    all_rows = []
+    table.add_column("Epoch", style=style, justify="right")
+    all_rows.append(["Epoch"])
+    for idx, field in enumerate(history.keys()):
+        idx += 1
+        table.add_column(field, style=style, justify="right")
+        all_rows.append([field])
+        for epoch, entry in enumerate(history[field], start=1):
+            all_rows[idx].append(entry)
+            if idx == 1:
+                all_rows[0].append(epoch)
+
+    # skipping header row
+    for num_row in range(1, len(all_rows[0])):
+        row = ()
+        for num_col in range(len(all_rows)):
+            if all_rows[num_col][0] == "Epoch":
+                row += ("{:d}".format(all_rows[num_col][num_row]),)
+            elif all_rows[num_col][0] == "lr":
+                row += ("{:.4e}".format(all_rows[num_col][num_row]),)
+            else:
+                if "val_" in all_rows[num_col][0] and all_rows[0][num_row] % validation_freq != 0:
+                    row += (" ",)
+                elif "val_" in all_rows[num_col][0]:
+                    row += ("{:.4f}".format(all_rows[num_col][num_row // validation_freq]),)
+                else:
+                    row += ("{:.4f}".format(all_rows[num_col][num_row]),)
+        table.add_row(*row)
+
+    rich.print(table)
+
+    with open("history_table.txt", "w") as fp:
+        rich.print(table, file=fp)
+
+
 def empty(*args, **kwargs):
     pass
 
 
 def log_hyperparameters(
     config: DictConfig,
-    datamodule: 'TfDataloader',
-    trainer: 'TrainingModule',
-    callbacks: List[tf.keras.callbacks.Callback],
-    logger: List[tf.keras.callbacks.Callback],
+    datamodule: "TfDataloader",
+    trainer: "TrainingModule",
 ) -> None:
-    """This method controls which parameters from Hydra config are saved by Lightning loggers.
-    Additionaly saves:
+    """This method controls which parameters from Hydra config are saved to wandb.
+    Additional saves:
         - number of trainable model parameters
     """
-
     hparams = {}
 
     # choose which parts of hydra config will be saved to loggers
-    hparams["trainer"] = config["trainer"]
-    hparams["model"] = config["model"]
-    hparams["datamodule"] = config["datamodule"]
+    hparams["trainer"] = OmegaConf.to_container(config["trainer"], resolve=True)
+    hparams["model"] = OmegaConf.to_container(config["model"], resolve=True)
+    hparams["datamodule"] = OmegaConf.to_container(config["datamodule"], resolve=True)
     if "seed" in config:
         hparams["seed"] = config["seed"]
-    if "callbacks" in config:
-        hparams["callbacks"] = config["callbacks"]
+    if "callback" in config:
+        hparams["callback"] = OmegaConf.to_container(config["callback"], resolve=True)
 
     # save number of model parameters
-    hparams["model/params_total"] = trainer.model.count_params()
-    hparams["model/params_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.trainable_weights])
-    hparams["model/params_not_trainable"] = np.sum([
-        np.prod(v.get_shape())
-        for v in trainer.model.non_trainable_weights
-    ])
+    hparams["model"]["params_total"] = trainer.model.count_params()
+    hparams["model"]["params_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.trainable_weights])
+    hparams["model"]["params_not_trainable"] = np.sum([np.prod(v.get_shape()) for v in trainer.model.non_trainable_weights])
 
-    # send hparams to all loggers
-    trainer.logger.log_hyperparams(hparams)
-
-    # disable logging any more hyperparameters for all loggers
-    # this is just a trick to prevent trainer from logging hparams of model,
-    # since we already did that above
-    trainer.logger.log_hyperparams = empty
+    # flatten nested dicts
+    hparams = dict(flatdict.FlatDict(hparams, delimiter="/"))
+    # send hparams to wandb logger
+    wandb.config.update(hparams)
 
 
 def finish(
     config: DictConfig,
-    datamodule: 'TfDataloader',
-    trainer: 'TrainingModule',
+    datamodule: "TfDataloader",
+    trainer: "TrainingModule",
     callbacks: List[tf.keras.callbacks.Callback],
     logger: List[tf.keras.callbacks.Callback],
 ) -> None:
     """Makes sure everything closed properly."""
 
     # without this sweeps with wandb logger might crash!
-    pass
+    wandb.finish()

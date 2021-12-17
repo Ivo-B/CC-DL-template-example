@@ -8,9 +8,12 @@ defaults:
 
 debug_mode: True
 
+# name of the run, accessed by loggers
+name: run_${current_time}
+
 hydra:
   # sets level of all command line loggers to 'DEBUG'
-  verbose: True
+  verbose: [__main__, hydra, cctest]
 
   # https://hydra.cc/docs/tutorials/basic/running_your_app/logging/
   # sets level of only chosen command line loggers to 'DEBUG'
@@ -18,10 +21,11 @@ hydra:
 
   # sets output paths for all file logs to 'logs/debug/'
   run:
-    dir: logs/debug/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: logs/debug/${name}
   sweep:
-    dir: logs/debug/multirun_${now:%Y-%m-%d_%H-%M-%S}
+    dir: logs/debug/multirun/${name}
     subdir: ${hydra.job.num}
+  output_subdir: "hydra_training"
 
 # disable rich config printing, since it will be already printed by hydra when `verbose: True`
 print_config: False

@@ -1,8 +1,9 @@
 # Our example cookiecutter project
 <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.9-3670A0?style=flat-square&logo=python&logoColor=ffdd54"></a>
-<a href="https://pytorch.org/get-started/locally/"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.4-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
+<a href="https://www.tensorflow.org/install"><img alt="Tensorflow" src="https://img.shields.io/badge/-Tensorflow 2.7-%23FF6F00?style=flat-square&logo=Tensorflow&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: hydra" src="https://img.shields.io/badge/config-hydra 1.1-89b8cd?style=flat-square&labelColor=gray"></a>
-<a href="https://hub.docker.com/r/ashlev/lightning-hydra"><img alt="Docker" src="https://img.shields.io/badge/docker-257bd6?style=flat-square&logo=docker&logoColor=white"></a><br>
+<a href="https://www.docker.com/"><img alt="Docker" src="https://img.shields.io/badge/docker-257bd6?style=flat-square&logo=docker&logoColor=white"></a>
+<a href="https://github.com/psf/black"><img alt="Black" src="https://img.shields.io/badge/code%20style-black-black?style=flat-square"></a><br>
 [![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg?style=flat-square)](https://www.nature.com/articles/nature14539)
 [![Conference](http://img.shields.io/badge/AnyConference-year-4b44ce.svg?style=flat-square)](https://papers.nips.cc/paper/2020)
 
@@ -13,43 +14,59 @@ We need some project explanation here!
 - poetry
 - python 3.9
 
-Install pyenv and poetry:
-````yaml
-# PyEnv for Ubuntu
-curl https://pyenv.run | bash
+You can use your favorite method to provide python 3.9 for poetry. I recommend [https://github.com/pyenv/pyenv#installation](PyEnv), but you can also use [https://docs.conda.io/en/latest/miniconda.html](Conda) etc.
 
+Install poetry:
+````yaml
 # Poetry for Ubuntu
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
 ````
 
 ## How to use
+> this is only for our example without Cookiecutter
 ````yaml
 # clone project
 git clone https://github.com/Ivo-B/Example_CC_DL_template
 cd Example_CC_DL_template
+````
 
+If you use conda to provide the correct Python version, installation and usability is a bit different:
+````yaml
+# creates a conda environment
+make environment
+# run to activate env, install packages, init git, init dvc, install pre-commit
+source ./bash/finalize_environment.sh
+````
+
+When you use PyEnv to provide Python, your virtualenvironment is installed in the project folder `.venv`
+````yaml
 poetry install
-# use poetry
-poetry shell
-# or pyenv
+# activate Virtualenv by
 source ./.venv/Scripts/activate
 
-#activate pre-commit
+# activate pre-commit
 pre-commit install
 ````
-Template contains example with MNIST classification.<br>
+
+Template contains examples with MNIST classification and Oxfordpet segmentation.<br>
  1. edit [.env.example](.env.example) and set your PROJECT_PATH, rename file to `.env`
- 2. run jupyter notebook `notebooks/1.0-IBa-data-download-and-processed.ipynb` to download and prepare data
- 3. Now your can simply run `python run.py`.
+ 2. To download and prepare data, use `make data_mnist` or `make data_oxford`
+ 3. To run the classification example, use `python run_training.py mode=exp name=exp_test`.
+ 4. To run the segmentation example, use `python run_training.py --config-name config_seg mode=exp name=exp_test`.
 
 
 ## Project Organization
+
+<details>
+<summary><b>Show project structure</b></summary>
+
 ```
-├──.venv                <- Local poetry environment
+├──.venv                        <- Local poetry environment
 │   └──.gitkeep
-├── configs                 <- Hydra configuration files
+├── configs                     <- Hydra configuration files
 │   ├── callbacks               <- Callbacks configs
 │   ├── datamodule              <- Datamodule configs
+│   │   └── data_aug            <- TODO
 │   ├── experiment              <- Experiment configs
 │   ├── hparams_search          <- Hyperparameter search configs
 │   ├── mode                    <- Running mode configs
@@ -70,14 +87,13 @@ Template contains example with MNIST classification.<br>
 ├── docs                <- A default Sphinx project; see sphinx-doc.org for details
 ├── models              <- Trained and serialized models, model predictions, or model summaries
 ├── notebooks           <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
+│                           the creator's initials, and a short `-` delimited description, e.g.
+│                           `1.0-jqp-initial-data-exploration`.
 ├── references          <- Data dictionaries, manuals, and all other explanatory materials.
 ├── reports             <- Generated analysis as HTML, PDF, LaTeX, etc.
 │   └── figures         <- Generated graphics and figures to be used in reporting
-├── test                <- Data dictionaries, manuals, and all other explanatory materials.
+├── test                <- TODO
 ├── cctest              <- Source code for use in this project.
-│   │
 │   ├── data                              <- Scripts to download or generate data
 │   │   └── __init__.py
 │   ├── dataloaders                       <- Scripts to handel and load the preprocessed data
@@ -88,7 +104,7 @@ Template contains example with MNIST classification.<br>
 │   │   └── __init__.py
 │   ├── executor                          <- Scripts to train, eval and test models
 │   │   ├── __init__.py
-│   │   └── train_model.py                <- TODO
+│   │   └── training.py                   <- TODO
 │   ├── models                            <- Scripts to define model architecture
 │   │   ├── modules                       <- TODO
 │   │   │   ├── __init__.py
@@ -99,6 +115,8 @@ Template contains example with MNIST classification.<br>
 │   ├── utils                             <- Utility scripts
 │   │   ├── __init__.py
 │   │   ├── my_callback.py                <- TODO
+│   │   ├── my_losses.py                  <- TODO
+│   │   ├── my_metrics.py                 <- TODO
 │   │   └── utils.py                      <- TODO
 │   │
 │   ├── visualization                     <- Scripts to create exploratory and results oriented
@@ -106,25 +124,31 @@ Template contains example with MNIST classification.<br>
 │   │
 │   └── __init__.py                       <- Makes cctest a Python module
 │
-├── .editorconfig         <- file with format specification. You need to install
-│                             the required plugin for your IDE in order to enable it.
-├── .gitignore         <- file that specifies what should we commit into
-│                             the repository and we should not.
+├── .env.example            <- TODO
+├── .editorconfig           <- file with format specification. You need to install
+│                               the required plugin for your IDE in order to enable it.
+├── .gitignore              <- file that specifies what should we commit into
+│                               the repository and we should not.
+├── .pre-commit-config.yaml <- TODO
 ├── LICENSE
-├── poetry.toml         <- poetry config file to install enviroment locally
-├── poetry.lock         <- lock file for dependencies. It is used to install exactly
-│                         the same versions of dependencies on each build
-├── pyproject.toml      <- The project's dependencies for reproducing the
-│                         analysis environment
-├── README.md           <- The top-level README for developers using this project.
-└── setup.cfg           <- configuration file, that is used by all tools in this project```
+├── Makefile                <- Makefile with commands like `make data_mnist`
+├── poetry.toml             <- poetry config file to install enviroment locally
+├── poetry.lock             <- lock file for dependencies. It is used to install exactly
+│                               the same versions of dependencies on each build
+├── pyproject.toml          <- The project's dependencies for reproducing the
+│                               analysis environment
+├── README.md               <- The top-level README for developers using this project.
+├── run_training.py         <- TODO
+└── setup.cfg               <- configuration file, that is used by most tools in this project
 ```
+
+</details>
 
 ## Guide
 
 ### How To Get Started
 
-- First, you should probably get familiar with [PyTorch Lightning](https://www.pytorchlightning.ai)
+- First, you should probably get familiar with [Tensorflow](https://www.tensorflow.org/)
 - Next, go through [Hydra quick start guide](https://hydra.cc/docs/intro/) and [basic Hydra tutorial](https://hydra.cc/docs/tutorials/basic/your_first_app/simple_cli/)
   <br>
 
@@ -133,7 +157,7 @@ Template contains example with MNIST classification.<br>
 By design, every run is initialized by [run_training.py](run_training.py) file. All modules are dynamically instantiated from module paths specified in config. Example model config:
 
 ```yaml
-_target_: cctest.models.modules.simple_dense_net.SimpleDenseNet
+_target_: cctest.model.modules.simple_dense_net.SimpleDenseNet
 input_shape: [28,28,1]
 lin1_size: 256
 lin2_size: 256
@@ -149,7 +173,7 @@ model = hydra.utils.instantiate(config.model)
 
 This allows you to easily iterate over new models!<br>
 Every time you create a new one, just specify its module path and parameters in appriopriate config file. <br>
-The whole pipeline managing the instantiation logic is placed in [cctest/executor/train_model.py](cctest/executor/train_model.py).
+The whole pipeline managing the instantiation logic is placed in [cctest/executor/training.py](cctest/executor/training.py).
 
 <br>
 
@@ -169,7 +193,7 @@ defaults:
   - trainer: default.yaml
   - model: mnist_model.yaml
   - datamodule: mnist_datamodule.yaml
-  - callbacks: default.yaml # set this to null if you don't want to use callbacks
+  - callback: default.yaml # set this to null if you don't want to use callback
   - logger: null # set logger here or use command line (e.g. `python run.py logger=wandb`)
 
   - mode: default.yaml
@@ -220,7 +244,7 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-seed: 12345
+seed: "OxCAFFEE"
 
 trainer:
   epochs: 5
@@ -258,7 +282,7 @@ defaults:
 # instead we define all modules and their paths directly in this config,
 # so everything is stored in one place
 
-seed: 12345
+seed: "OxCAFFEE"
 
 trainer:
   loss:
@@ -267,7 +291,7 @@ trainer:
   metric:
     _target_: tensorflow.keras.metrics.CategoricalAccuracy
   optimizer:
-    _target_: tensorflow.keras.callbacks.ReduceLROnPlateau
+    _target_: tensorflow.keras.callback.ReduceLROnPlateau
     factor: 0.5
     patience: 10
     min_lr: 1e-9
@@ -282,17 +306,16 @@ trainer:
     epsilon: 1e-07
     amsgrad: 'false'
 
-  _target_: cctest.models.base_trainer_module.TrainingModule
+  _target_: cctest.model.base_trainer_module.TrainingModule
   # set `-1` to train on all GPUs in a node,
   # '>0' to train on specific num of GPUs in a node,
   # `0` to train on CPU only
   gpus: -1
-  workers: 10
   epochs: 5
   # resume_from_checkpoint: ${work_dir}/last.ckpt
 
 model:
-  _target_: cctest.models.modules.simple_conv_net.SimpleConvNet
+  _target_: cctest.model.modules.simple_conv_net.SimpleConvNet
   input_shape: [28, 28, 1]
   conv1_size: 16
   conv2_size: 32
@@ -310,7 +333,7 @@ datamodule:
 
 callbacks:
   model_checkpoint:
-    _target_: tensorflow.keras.callbacks.ModelCheckpoint
+    _target_: tensorflow.keras.callback.ModelCheckpoint
     monitor: 'val_loss' # name of the logged metric which determines when model is improving
     mode: 'min' # can be 'max' or 'min'
     save_best_only: True # save best model (determined by above metric)
@@ -319,7 +342,7 @@ callbacks:
     filepath: 'checkpoints/epoch_{epoch:03d}-{val_loss:.2f}.tf'
     save_format: 'tf'
   early_stopping:
-    _target_: tensorflow.keras.callbacks.EarlyStopping
+    _target_: tensorflow.keras.callback.EarlyStopping
     monitor: 'val_loss' # name of the logged metric which determines when model is improving
     mode: 'max' # can be 'max' or 'min'
     patience: 100 # how many validation epochs of not improving until training stops
@@ -327,12 +350,12 @@ callbacks:
 
 logger:
   tensorboard:
-    _target_: tensorflow.keras.callbacks.TensorBoard
+    _target_: tensorflow.keras.callback.TensorBoard
     log_dir: "tensorboard/${name}"
     write_graph: False
     profile_batch: 0
   csv:
-    _target_: tensorflow.keras.callbacks.CSVLogger
+    _target_: tensorflow.keras.callback.CSVLogger
     filename: "./csv/${name}.csv"
 ```
 
@@ -342,10 +365,10 @@ logger:
 
 ### Workflow
 
-1. Write your model (see [simple_conv_net.py](cctest/models/modules/simple_conv_net.py) for example)
+1. Write your model (see [simple_conv_net.py](cctest/model/modules/simple_conv_net.py) for example)
 2. Write your datamodule (see [mnist_datamodule.py](cctest/datamodules/mnist_datamodule.py) for example)
 3. Write your experiment config, containing paths to your model and datamodule
-4. Run training with chosen experiment config: `python run.py experiment=experiment_name`
+4. Run training with chosen experiment config: `python run_training.py mode=exp experiment=[your_config_name]`
    <br>
 
 ### Logs
@@ -356,29 +379,37 @@ By default, logs have the following structure:
 ```
 │
 ├── logs
-│   ├── runs                    # Folder for logs generated from single runs
-│   │   ├── 2021-02-15              # Date of executing run
-│   │   │   ├── 16-50-49                # Hour of executing run
-│   │   │   │   ├── .hydra                  # Hydra logs
-│   │   │   │   ├── wandb                   # Weights&Biases logs
+│   ├── experiments                         # Folder for logs generated from single runs
+│   │   ├── exp_test                        # Name of your experiment
+│   │   │   ├── 2021-02-15_16-50-49         # Date and Hour of executing run
+│   │   │   │   ├── hydra_training          # Hydra logs
 │   │   │   │   ├── checkpoints             # Training checkpoints
 │   │   │   │   └── ...                     # Any other thing saved during training
 │   │   │   ├── ...
 │   │   │   └── ...
 │   │   ├── ...
-│   │   └── ...
-│   │
-│   └── multiruns               # Folder for logs generated from multiruns (sweeps)
-│       ├── 2021-02-15_16-50-49     # Date and hour of executing sweep
-│       │   ├── 0                       # Job number
-│       │   │   ├── .hydra                  # Hydra logs
-│       │   │   ├── wandb                   # Weights&Biases logs
-│       │   │   ├── checkpoints             # Training checkpoints
-│       │   │   └── ...                     # Any other thing saved during training
-│       │   ├── 1
-│       │   ├── 2
-│       │   └── ...
-│       ├── ...
-│       └── ...
-│
+│   │   └── multiruns                             # Folder for logs generated from multiruns (sweeps)
+│   │           ├── exp_test                      # Name of your experiment
+│   │           │   ├── 2021-02-15_16-50-49       # Date and Hour of executing run
+│   │           │   │   ├── 0                     # Job number
+│   │           │   │   │   ├── hydra_training    # Hydra logs
+│   │           │   │   │   ├── checkpoints       # Training checkpoints
+│   │           │   │   │   └── ...               # Any other thing saved during training
+│   │           │   │   ├── 1
+│   │           │   │   ├── 2
+│   │           │   │   └── ...
+│   │           │   ├── ...
+│   │           │   └── ...
+│   │           ├── ...
+│   │           └── ...
+│   ├── debug                         # Folder for logs generated from debug runs
+
 ```
+
+
+### Based on:
+[cookiecutter-data-science](https://github.com/drivendata/cookiecutter-data-science)
+
+[wemake-django-template](https://github.com/wemake-services/wemake-django-template)
+
+[lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template)

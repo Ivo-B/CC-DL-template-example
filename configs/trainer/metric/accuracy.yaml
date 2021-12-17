@@ -1,1 +1,2 @@
-_target_: tensorflow.keras.metrics.CategoricalAccuracy
+categorical_accuracy:
+  _target_: tensorflow.keras.metrics.CategoricalAccuracy

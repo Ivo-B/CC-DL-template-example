@@ -10,10 +10,13 @@ defaults:
   - override /callbacks: default.yaml
   - override /logger: null
 
+  - override /mode: exp.yaml
+
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-seed: 12345
+name: simple_example
+seed: "OxCAFFEE"
 
 trainer:
   epochs: 5

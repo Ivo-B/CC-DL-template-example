@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v3.4.0
     hooks:
       # list of supported hooks: https://pre-commit.com/hooks.html
       - id: trailing-whitespace
@@ -16,11 +16,11 @@ repos:
       - id: add-trailing-comma
 
   # python code formatting
-  - repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.5.7 # Use the sha / tag you want to point at
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
     hooks:
-      - id: autopep8
-        args: [--max-line-length, '120', --in-place]
+      - id: black
+        args: [--line-length, "125"]
 
   # python import sorting
   - repo: https://github.com/PyCQA/isort
@@ -34,15 +34,13 @@ repos:
     hooks:
       - id: prettier
         types: [yaml]
-        args: [--single-quote]
 
-  # python code analysis
-  - repo: local
+  # 'nbstripout: strip output from Jupyter and IPython notebooks'
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.3.9
     hooks:
-      - id: flake8
-        name: flake8
-        description: wemake-python-styleguide enforcement
-        entry: flake8
-        args: ['--config=setup.cfg']
+      - id: nbstripout
+        name: nbstripout
+        entry: nbstripout
         language: python
-        types: [python]
+        types: [jupyter]
