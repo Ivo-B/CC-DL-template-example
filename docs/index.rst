@@ -1,25 +1,16 @@
-Welcome to CC-DL-template's documentation!
-==================================================
+**CCDLT-E** is just our example implementation for a simple Project based on `CCDLT <https://github.com/Ivo-B/CC-DL-template/>`_
 
-How to start
-------------
+.. note::
 
-You should start with reading the documentation.
-Reading order is important.
+   This project is under active development.
 
-There are multiple processes that you need to get familiar with:
+.. mdinclude:: ../README.md
 
-- First time setup phase: what system requirements you must fulfill,
-  how to install dependencies, how to start your project
-- Active development phase: how to make changes, run tests,
-
-
+Contents
+--------
 .. toctree::
-   :maxdepth: 2
-   :caption: Setting things up:
-
-   pages/template_guide/overview.rst
-
+   pages/project/api
+  
 
 Indexes and tables
 ==================

@@ -33,7 +33,7 @@ clean:
 lint:
 	flake8 $(MODULE_NAME)
 
-## Set up python interpreter environment
+
 ifeq (,$(shell which conda))
     HAS_CONDA=False
 else
@@ -42,6 +42,7 @@ else
     MY_ENV_DIR=$(ENV_DIR)/envs/$(CONDA_ENV_NAME)
 endif
 
+## Set up python interpreter environment
 environment:
 ifeq (True,$(HAS_CONDA))
 ifneq ("$(wildcard $(MY_ENV_DIR))","") # check if the directory is there

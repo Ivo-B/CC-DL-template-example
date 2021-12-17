@@ -51,15 +51,20 @@ needs_sphinx = '3.3'
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+
+    # Used to write beautiful docstrings:
     'sphinx.ext.napoleon',
 
-    # 3rd party, order matters:
-    # https://github.com/wemake-services/wemake-django-template/issues/159
+    # Used to include .md files:
+    'm2r2',
+
+    # Used to insert typehints into the final docs:
     'sphinx_autodoc_typehints',
 ]
 
@@ -68,7 +73,7 @@ templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
-source_suffix = ['.rst']
+source_suffix = ['.rst', '.md']
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -198,4 +203,4 @@ html_sidebars = {
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CC_example_templatedoc'
+htmlhelp_basename = 'CCDLTexampldoc'

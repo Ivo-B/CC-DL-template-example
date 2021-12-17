@@ -69,6 +69,7 @@ sphinx = "^4.1"
 sphinx-autodoc-typehints = "^1.12"
 tomlkit = "^0.7"
 doc8 = "^0.9"
+m2r2 = "^0.3.2"
 
 yamllint = "^1.26"
 safety = "^1.10"
