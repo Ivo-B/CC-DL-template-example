@@ -37,9 +37,5 @@ def main(config: DictConfig):
 
 
 if __name__ == "__main__":
-    # AFAIK: Best method to get ride of exception at the end
-    # Read more here:
-    try:
-        main()
-    except OSError:
-        pass
+    main()
+

@@ -103,7 +103,7 @@ def train_val_test_spitting(full_dataset):
         X_train_val, X_test = all_x[train_index], all_x[test_index]
         y_train_val, y_test = all_y[train_index], all_y[test_index]
 
-    with open(output_path / "OxfordPet_test_data.txt", "w") as f:
+    with open(output_path / "OxfordPet_testing_data.txt", "w") as f:
         for name, y in zip(X_test, y_test):
             f.write(f"{name}.npy, {y}\n")
 

@@ -8,3 +8,4 @@ train_list: "OxfordPet_training_data.txt"
 val_list: "OxfordPet_validation_data.txt"
 test_list: "OxfordPet_test_data.txt"
 batch_size: 64
+cache_data: True
