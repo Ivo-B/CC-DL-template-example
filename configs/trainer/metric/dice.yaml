@@ -1,5 +1,5 @@
 dice:
-  _target_: cctest.utils.my_metrics.MeanSegMetric
+  _target_: cctest.utils.my_metric.MeanSegMetric
 
   jaccard: False
   include_background: False

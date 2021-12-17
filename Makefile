@@ -5,7 +5,6 @@
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-PROJECT_NAME := Example_CC_DL_template
 MODULE_NAME := cctest
 PYTHON_VERSION := 3.9
 PYTHON_INTERPRETER := python
@@ -19,7 +18,7 @@ CONDA_ENV_NAME := $(MODULE_NAME)_py$(subst .,,$(PYTHON_VERSION))
 
 ## Make Oxfordpet Dataset
 data_oxford:
-	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxford_pet.py
+	$(PYTHON_INTERPRETER) $(MODULE_NAME)/data/make_oxfordpet.py
 
 ## Make MNIST Dataset
 data_mnist:
@@ -34,7 +33,7 @@ clean:
 lint:
 	flake8 $(MODULE_NAME)
 
-## Set up python interpreter environment
+
 ifeq (,$(shell which conda))
     HAS_CONDA=False
 else
@@ -43,6 +42,7 @@ else
     MY_ENV_DIR=$(ENV_DIR)/envs/$(CONDA_ENV_NAME)
 endif
 
+## Set up python interpreter environment
 environment:
 ifeq (True,$(HAS_CONDA))
 ifneq ("$(wildcard $(MY_ENV_DIR))","") # check if the directory is there

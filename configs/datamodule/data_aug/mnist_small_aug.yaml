@@ -1,3 +1,4 @@
+# transformations will be added chronological
 training:
   flip_vertical:
     _target_: albumentations.Flip

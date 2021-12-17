@@ -21,25 +21,23 @@ class SimpleConvNet(keras.Model):
         self.conv4_size = conv4_size
         self.output_size = output_size
 
-        self.conv1 = keras.layers.Conv2D(conv1_size, 3)
+        self.conv1 = keras.layers.Conv2D(conv1_size, 3)  # 28x28 -> 26x26
         self.bn1 = keras.layers.BatchNormalization()
         self.relu1 = keras.layers.ReLU()
 
-        self.conv2 = keras.layers.Conv2D(conv2_size, 3)
+        self.conv2 = keras.layers.Conv2D(conv2_size, 3)  # 26x26 -> 24x24
         self.bn2 = keras.layers.BatchNormalization()
         self.relu2 = keras.layers.ReLU()
 
-        self.max1 = keras.layers.MaxPooling2D(2)
-
-        self.conv3 = keras.layers.Conv2D(conv3_size, 3)
+        self.conv3 = keras.layers.Conv2D(conv3_size, 3)  # 24x24 -> 12x12
         self.bn3 = keras.layers.BatchNormalization()
         self.relu3 = keras.layers.ReLU()
 
-        self.conv4 = keras.layers.Conv2D(conv4_size, 3)
+        self.conv4 = keras.layers.Conv2D(conv4_size, 3)  # 12x12 -> 10x10
         self.bn4 = keras.layers.BatchNormalization()
         self.relu4 = keras.layers.ReLU()
 
-        self.pooling = keras.layers.GlobalMaxPooling2D()
+        self.flatt = keras.layers.Flatten()  # 10x10xconv4_size-> 100xconv4_size
         self.dense1 = keras.layers.Dense(output_size)
 
         # adding batch dim with None
@@ -60,8 +58,6 @@ class SimpleConvNet(keras.Model):
         x = self.bn2(x)
         x = self.relu2(x)
 
-        x = self.max1(x)
-
         x = self.conv3(x)
         x = self.bn3(x)
         x = self.relu3(x)
@@ -70,7 +66,7 @@ class SimpleConvNet(keras.Model):
         x = self.bn4(x)
         x = self.relu4(x)
 
-        x = self.pooling(x)
+        x = self.flatt(x)
 
         return self.dense1(x)
 

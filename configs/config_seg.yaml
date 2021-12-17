@@ -6,7 +6,7 @@ defaults:
   - trainer: default_seg.yaml
   - model: oxfordpet_model_unet.yaml
   - datamodule: oxfordpet_datamodule.yaml
-  - callbacks: default.yaml
+  - callback: default.yaml
   - logger: many_loggers.yaml # set logger here or use command line (e.g. `python run.py logger=wandb`)
 
   # every run/experiment is sacred (think before doing an experiment), everything else is debugging
