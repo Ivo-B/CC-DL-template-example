@@ -13,6 +13,7 @@ class TrainingModule:
         gpus: int,
         epochs: int,
         validation_freq: int,
+        mixed_precision: bool,
         optimizer: DictConfig,
         lr_scheduler: DictConfig,
         loss: DictConfig,
@@ -23,6 +24,7 @@ class TrainingModule:
         self.gpus = gpus
         self.epochs = epochs
         self.validation_freq = validation_freq
+        self.mixed_precision = mixed_precision
 
         self.callbacks = list(callbacks)
         self.metric_config = metric
