@@ -38,14 +38,20 @@ make environment
 source ./bash/finalize_environment.sh
 ````
 
-When you use PyEnv to provide python, your virtualenvironment is installed in the project folder `.venv`
+### Apple silicon (M1) installation is different, see below
+
+Currently, you have to build your own `tensorflow-io-gcs-filesystem` wheel (
+[See here](https://github.com/tensorflow/io/issues/1298)). Place the final wheel into the folder `./extras/`. Afterwards you can follow the instruction below.
 ````yaml
-poetry install
-# activate Virtualenv by
-source ./.venv/Scripts/activate
+# creates a conda environment
+make environment
+# run to activate env, install packages
+source ./bash/finalize_environment.sh
+
+pip uninstall grpcio; conda install grpcio
 ````
 
-Template contains examples with MNIST classification and Oxfordpet segmentation.
+### Template contains examples with MNIST classification and Oxfordpet segmentation.
 > First step is only needed when cloning this example!
 
  1. edit [.env.example](.env.example) and set your PROJECT_DIR, rename file to `.env`
