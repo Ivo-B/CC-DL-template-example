@@ -6,6 +6,6 @@ _target_: cctest.datamodule.mnist_datamodule.MNISTDataset
 data_dir: ${data_dir} # data_dir is specified in config.yaml
 train_list: "MNIST_training_data.txt"
 val_list: "MNIST_validation_data.txt"
-test_list: "MNIST_test_data.txt"
+test_list: "MNIST_testing_data.txt"
 batch_size: 128 # will be scaled by the number of GPUs
 cache_data: True
