@@ -2,6 +2,6 @@
 
 tensorboard:
   _target_: tensorflow.keras.callbacks.TensorBoard
-  log_dir: "${work_dir}/tensorboard/${name}"
+  log_dir: "${work_dir}/tensorboard/${name}/${current_time}"
   write_graph: False
   profile_batch: 0
