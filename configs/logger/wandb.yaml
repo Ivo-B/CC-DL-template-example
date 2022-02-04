@@ -1,9 +1,10 @@
 # https://wandb.ai/quickstart/keras
 
 wandb_init:
-  user: null
-  project: CC_example_template
+  user: ${oc.env:WANDB_USER}
+  project: CC-DL-template-example
   name: ${name}
+  job_type: training
 
 wandb:
   _target_: wandb.keras.WandbCallback
