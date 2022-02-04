@@ -9,7 +9,7 @@ defaults:
 debug_mode: True
 
 # name of the run, accessed by loggers
-name: run_${current_time}
+name: test
 
 hydra:
   # sets level of all command line loggers to 'DEBUG'
@@ -21,9 +21,9 @@ hydra:
 
   # sets output paths for all file logs to 'logs/debug/'
   run:
-    dir: logs/debug/${name}
+    dir: logs/debug/${name}/${current_time}
   sweep:
-    dir: logs/debug/multirun/${name}
+    dir: logs/debug/multirun/${name}/${current_time}
     subdir: ${hydra.job.num}
   output_subdir: "hydra_training"
 
